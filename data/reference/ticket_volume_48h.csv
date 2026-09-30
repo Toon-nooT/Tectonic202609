@@ -1,0 +1,6 @@
+client,rule_id,open_tickets_48h,exported_at
+Volvo Group,pc200_overtime_threshold,14,2026-09-29T04:00:00Z
+Atlas Logistics,expense_reimbursement_sla,9,2026-09-29T04:00:00Z
+AeroPulse,fr_oncall_weeknight_allowance,6,2026-09-29T04:00:00Z
+NovaRetail,be_holiday_carryover_deadline,3,2026-09-29T04:00:00Z
+GreenMotion,nightshift_voucher_cutoff,11,2026-09-29T04:00:00Z

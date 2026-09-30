@@ -1,0 +1,68 @@
+{
+  "description": "Fact-extraction rules used by the Collision Sentinel. Each rule pulls one comparable fact out of the raw documents; differing normalized values across files = a conflict. Swap this file for an LLM extractor later without changing the pipeline.",
+  "rules": [
+    {
+      "rule_id": "pc200_overtime_threshold",
+      "conflict_id": "conf_101",
+      "topic": "PC 200 Overtime Calculation",
+      "client_context": "Volvo Group",
+      "severity": "HIGH",
+      "normalize": "number",
+      "extractors": [
+        { "pattern": "150% rate applies after (?P<value>\\d+(?:\\.\\d+)?) hours" }
+      ]
+    },
+    {
+      "rule_id": "expense_reimbursement_sla",
+      "conflict_id": "conf_102",
+      "topic": "Expense Reimbursement SLA",
+      "client_context": "Atlas Logistics",
+      "severity": "MEDIUM",
+      "normalize": "number",
+      "extractors": [
+        { "pattern": "(?:reimbursed within|reimbursements? may take up to) (?P<value>\\d+) business days" }
+      ]
+    },
+    {
+      "rule_id": "fr_oncall_weeknight_allowance",
+      "conflict_id": "conf_103",
+      "topic": "On-Call Compensation in France",
+      "client_context": "AeroPulse",
+      "severity": "HIGH",
+      "normalize": "number",
+      "extractors": [
+        {
+          "pattern": "policy_area=on_call; category=weeknight; condition=standard; amount=(?P<value>\\d+(?:\\.\\d+)?)",
+          "statement": "Weeknight on-call allowance is fixed at EUR {value}."
+        },
+        { "pattern": "allowance was raised to EUR (?P<value>\\d+(?:\\.\\d+)?)" }
+      ]
+    },
+    {
+      "rule_id": "be_holiday_carryover_deadline",
+      "conflict_id": "conf_104",
+      "topic": "Belgium Public Holiday Carry-Over",
+      "client_context": "NovaRetail",
+      "severity": "LOW",
+      "normalize": "month_day",
+      "extractors": [
+        { "pattern": "carried over until (?P<value>[A-Za-z]+ \\d{1,2})" },
+        {
+          "pattern": "pc=200; rule_key=carry_over_deadline; rule_value=(?P<value>\\d{4}-\\d{2}-\\d{2})",
+          "statement": "Carry-over deadline is {value} per the rules engine (PC 200)."
+        }
+      ]
+    },
+    {
+      "rule_id": "nightshift_voucher_cutoff",
+      "conflict_id": "conf_105",
+      "topic": "Night Shift Meal Voucher Eligibility",
+      "client_context": "GreenMotion",
+      "severity": "MEDIUM",
+      "normalize": "text",
+      "extractors": [
+        { "pattern": "shifts ending after (?P<value>\\d{1,2}:\\d{2})" }
+      ]
+    }
+  ]
+}

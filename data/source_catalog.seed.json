@@ -2,71 +2,111 @@
   {
     "source_id": "src_001",
     "system": "SharePoint",
+    "type": "SharePoint Document",
     "format": "html",
     "mime_type": "text/html",
+    "title": "BE-PC200-LeavePolicy2025.html",
+    "owner_team": "Payroll Policy",
+    "uri": "sharepoint://policies/be/BE-PC200-LeavePolicy2025.html",
     "raw_path": "data/raw/sharepoint/BE-PC200-LeavePolicy2025.html"
   },
   {
     "source_id": "src_002",
     "system": "Microsoft Teams",
+    "type": "Teams Chat Export",
     "format": "json",
     "mime_type": "application/json",
+    "title": "payroll-be-thread-2026-09-28.json",
+    "owner_team": "Payroll Operations",
+    "uri": "teams://exports/payroll-be/payroll-be-thread-2026-09-28.json",
     "raw_path": "data/raw/teams/payroll-be-thread-2026-09-28.json"
   },
   {
     "source_id": "src_003",
     "system": "Confluence",
+    "type": "Confluence Page Export",
     "format": "md",
     "mime_type": "text/markdown",
+    "title": "expense-policy-emea-v4.md",
+    "owner_team": "Finance Ops",
+    "uri": "confluence://finance/expense-policy-emea-v4.md",
     "raw_path": "data/raw/confluence/expense-policy-emea-v4.md"
   },
   {
     "source_id": "src_004",
     "system": "Exchange",
+    "type": "Email Archive",
     "format": "eml",
     "mime_type": "message/rfc822",
+    "title": "CFO-update-expense-sla.eml",
+    "owner_team": "Finance Leadership",
+    "uri": "exchange://archives/2026/Q3/CFO-update-expense-sla.eml",
     "raw_path": "data/raw/exchange/CFO-update-expense-sla.eml"
   },
   {
     "source_id": "src_005",
     "system": "SharePoint",
+    "type": "Policy Spreadsheet",
     "format": "csv",
     "mime_type": "text/csv",
+    "title": "FR-oncall-compensation-matrix.csv",
+    "owner_team": "Compensation",
+    "uri": "sharepoint://comp/fr/FR-oncall-compensation-matrix.csv",
     "raw_path": "data/raw/sharepoint/FR-oncall-compensation-matrix.csv"
   },
   {
     "source_id": "src_006",
     "system": "Microsoft Stream",
+    "type": "Meeting Recording Transcript",
     "format": "vtt",
     "mime_type": "text/vtt",
+    "title": "fr-payroll-sync-2026-09-15.vtt",
+    "owner_team": "Country Payroll",
+    "uri": "stream://recordings/fr-payroll-sync-2026-09-15.vtt",
     "raw_path": "data/raw/stream/fr-payroll-sync-2026-09-15.vtt"
   },
   {
     "source_id": "src_007",
     "system": "Internal Knowledge Base",
+    "type": "Knowledge Base Article",
     "format": "md",
     "mime_type": "text/markdown",
+    "title": "be-holiday-carryover.md",
+    "owner_team": "Employee Support",
+    "uri": "kb://belgium/be-holiday-carryover.md",
     "raw_path": "data/raw/kb/be-holiday-carryover.md"
   },
   {
     "source_id": "src_008",
     "system": "Rules Data Lake",
+    "type": "CSV Rule Extract",
     "format": "csv",
     "mime_type": "text/csv",
+    "title": "be_leave_rules_snapshot_2026_09_20.csv",
+    "owner_team": "Rules Engine",
+    "uri": "s3://rules/be_leave_rules_snapshot_2026_09_20.csv",
     "raw_path": "data/raw/rules/be_leave_rules_snapshot_2026_09_20.csv"
   },
   {
     "source_id": "src_009",
     "system": "SharePoint",
+    "type": "PowerPoint Brief (extracted text)",
     "format": "txt",
     "mime_type": "text/plain",
+    "title": "benefits-nightshift-rollout.txt",
+    "owner_team": "Total Rewards",
+    "uri": "sharepoint://benefits/benefits-nightshift-rollout.pptx",
     "raw_path": "data/raw/sharepoint/benefits-nightshift-rollout.txt"
   },
   {
     "source_id": "src_010",
     "system": "ServiceNow",
+    "type": "ServiceNow Ticket Notes",
     "format": "json",
     "mime_type": "application/json",
+    "title": "ticket-cluster-nightshift-vouchers.json",
+    "owner_team": "Support Desk",
+    "uri": "servicenow://export/ticket-cluster-nightshift-vouchers.json",
     "raw_path": "data/raw/servicenow/ticket-cluster-nightshift-vouchers.json"
   }
 ]

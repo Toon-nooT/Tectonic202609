@@ -212,6 +212,22 @@ Suggested consumer API payload for future frontend/mobile:
 2. Use it to present conflict context, read out A/B options, and capture the SME choice in a conversational format.
 3. Keep this optional and non-blocking: core PoC value remains collision detection, prioritization, and verified resolution flow.
 
+### 6.1 Build Status (updated 2026-09-30)
+
+| Area | Status | Notes |
+|---|---|---|
+| Seed + raw data (`data/`) | Done | 10 raw files in 7 formats across 8 source systems, plus reference CSVs |
+| Collision Sentinel (ingest, extract, compare, route) | Done | `POST /api/sentinel/scan`, deterministic regex rules, scan log in `steps[]` |
+| Priority scorer | Done | `tier x tickets x severity` |
+| Trigger 1: early finish | Done | `POST /api/calendar/trigger-early-finish` |
+| Trigger 2: commute phone call | Done (API only) | Queues and logs the call, no telephony provider connected |
+| Resolve + provenance | Done | `POST /api/conflicts/resolve` |
+| Search with trust display | Done (API) | `GET /api/search`, keyword matching |
+| Frontend (Phases 3-5) | Owned by another team member | Contract: `backend/README.md` and `/docs` |
+| LLM-based detection, real voice provider, ElevenLabs video agent | Not started | Stretch |
+
+Backend documentation, API reference and demo flow: [backend/README.md](backend/README.md).
+
 ---
 
 ## 7. Key Pitch & Demo Flow Script

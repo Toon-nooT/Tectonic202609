@@ -1,0 +1,11 @@
+rule_id,sme_id,questions_answered_12m,last_answered_at
+pc200_overtime_threshold,user_77,12,2026-09-18
+pc200_overtime_threshold,user_81,1,2026-03-02
+expense_reimbursement_sla,user_81,9,2026-09-11
+expense_reimbursement_sla,user_88,2,2026-05-20
+fr_oncall_weeknight_allowance,user_95,7,2026-09-01
+fr_oncall_weeknight_allowance,user_77,1,2026-02-14
+be_holiday_carryover_deadline,user_77,5,2026-08-07
+be_holiday_carryover_deadline,user_95,2,2026-04-22
+nightshift_voucher_cutoff,user_88,8,2026-09-09
+nightshift_voucher_cutoff,user_81,3,2026-06-30

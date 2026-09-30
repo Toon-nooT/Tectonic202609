@@ -61,7 +61,7 @@
       "raw_path": "data/raw/exchange/CFO-update-expense-sla.eml",
       "excerpt": "Temporary measure: reimbursements may take up to 15 business days."
     },
-    "priority_score": 162,
+    "priority_score": 108,
     "assigned_sme": {
       "id": "user_81",
       "name": "Nina Verhaegen",
@@ -96,7 +96,7 @@
       "raw_path": "data/raw/stream/fr-payroll-sync-2026-09-15.vtt",
       "excerpt": "Allowance was raised to EUR 55 effective September payroll."
     },
-    "priority_score": 180,
+    "priority_score": 60,
     "assigned_sme": {
       "id": "user_95",
       "name": "Luc Martin",
@@ -131,7 +131,7 @@
       "raw_path": "data/raw/rules/be_leave_rules_snapshot_2026_09_20.csv",
       "excerpt": "carry_over_deadline,2026-02-28"
     },
-    "priority_score": 27,
+    "priority_score": 9,
     "assigned_sme": {
       "id": "user_77",
       "name": "Sarah De Vos",
@@ -166,7 +166,7 @@
       "raw_path": "data/raw/servicenow/ticket-cluster-nightshift-vouchers.json",
       "excerpt": "Agents are instructed to apply vouchers only for shifts ending after 23:00."
     },
-    "priority_score": 198,
+    "priority_score": 132,
     "assigned_sme": {
       "id": "user_88",
       "name": "Tom Claes",
