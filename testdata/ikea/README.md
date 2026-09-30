@@ -2,7 +2,7 @@
 
 Provided by **Toon Vandeleene** in `FW__markdown.zip`. All names, identifiers, policies and amounts are fictional test data, not IKEA policy or verified legal guidance. The original Markdown files are preserved byte-for-byte.
 
-- **Scan inputs:** the ten documents in `inputs/` only.
+- **Scan inputs:** the ten original documents in [`../../data/raw/ikea/`](../../data/raw/ikea/) only.
 - **Evaluation reference:** `reference/00_OPLOSSINGSSLEUTEL.md`. Exclude this solution key and this README from scanning, retrieval and model context.
 
 The supplied key labels **22 cases**, including one deliberate false-positive test: **#19**, one telework day versus a maximum of two, is compatible. Labels are test expectations, not independently verified conclusions.
