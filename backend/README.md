@@ -53,7 +53,7 @@ data/reference/*.csv (tiers, ticket volume, SME history)  ------------->  compar
 
 1. **Ingest** every source registered in `data/source_catalog.seed.json` from `data/raw/`.
 2. **Extract** comparable facts per topic (see below). Topics are defined in `data/detection_rules.json`.
-3. **Compare** normalized values (`number`, `month_day`, `text`) across files. Two or more distinct values = a conflict. The first two distinct values become Source A and Source B, and each excerpt is the sentence it was found in.
+3. **Compare** normalized values (`number`, `month_day`, `text`) across files. Two or more distinct values = a conflict. The first two distinct values become Source A and Source B, and each excerpt is the sentence it was found in. Any further distinct values (for example a payslip that disagrees with both a handbook and a policy) are listed in `additional_sources`. Two values can come from the same document, which surfaces documents that contradict themselves.
 4. **Enrich**: client tier (`client_tiers.csv`), 48h ticket spike (`ticket_volume_48h.csv`), and the SME with the most answered questions on the topic (`topic_ownership_history.csv`).
 5. **Upsert** into the store and return a `ScanReport` whose `steps` array is a human-readable log, handy for showing the pipeline live.
 
@@ -89,7 +89,7 @@ The test suite never calls the network (`KP_EXTRACTOR=regex` in `tests/conftest.
 
 | Path | Description |
 |---|---|
-| `data/raw/<system>/*` | Raw exported files in mixed formats (the scan input) |
+| `data/raw/<system>/*` | Raw exported files in mixed formats (the scan input). `data/raw/ikea/` holds the Dutch IKEA Belgium documents (`conf_106`-`conf_111`) |
 | `data/source_catalog.seed.json` | Registry of scanned sources (system, type, owner, URI, `raw_path`) |
 | `data/detection_rules.json` | Fact-extraction rules per topic |
 | `data/reference/*.csv` | Client tiers, ticket volume (48h), SME topic-ownership history |
@@ -205,7 +205,7 @@ Returns results of `kind: "CONFLICT_WARNING"` (before resolution, carries the `c
 ```
 POST /api/demo/reset?seed_conflicts=false   # empty state
 GET  /api/search?q=Volvo overtime           # no results yet
-POST /api/sentinel/scan                     # 5 conflicts detected from raw files, steps[] shows the process
+POST /api/sentinel/scan                     # 11 conflicts detected from raw files (5 original + 6 IKEA), steps[] shows the process
 GET  /api/search?q=Volvo overtime           # CONFLICT_WARNING
 POST /api/calendar/trigger-early-finish     # or /api/commute/trigger-traffic-call
 POST /api/conflicts/resolve                 # SME picks option B
@@ -219,3 +219,5 @@ GET  /api/search?q=Volvo overtime           # VERIFIED with trust scorecard
 - No authentication. The SME and verifier are identified by `sme_id` only.
 - No real phone or voice provider. Outreach is queued and logged.
 - Search is keyword-based.
+- The seeded reset (`/api/demo/reset`) holds the original 5 conflicts only. The IKEA conflicts appear after a scan.
+- IKEA master-data mismatches (company number, birth date, status, function, branch) and the probation period are not covered by rules yet. The telework frequency (1 day within a 2-day maximum) is intentionally not flagged.

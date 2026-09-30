@@ -108,5 +108,115 @@
     "owner_team": "Support Desk",
     "uri": "servicenow://export/ticket-cluster-nightshift-vouchers.json",
     "raw_path": "data/raw/servicenow/ticket-cluster-nightshift-vouchers.json"
+  },
+  {
+    "source_id": "src_101",
+    "system": "SharePoint",
+    "type": "Work Regulations",
+    "format": "md",
+    "mime_type": "text/markdown",
+    "title": "01_arbeidsreglement.md",
+    "owner_team": "HR Legal",
+    "uri": "sharepoint://ikea/hr/01_arbeidsreglement.md",
+    "raw_path": "data/raw/ikea/01_arbeidsreglement.md"
+  },
+  {
+    "source_id": "src_102",
+    "system": "Contract Management",
+    "type": "Employment Contract",
+    "format": "md",
+    "mime_type": "text/markdown",
+    "title": "02_arbeidsovereenkomst_sofie_van_damme.md",
+    "owner_team": "HR Administration",
+    "uri": "contracts://ikea/02_arbeidsovereenkomst_sofie_van_damme.md",
+    "raw_path": "data/raw/ikea/02_arbeidsovereenkomst_sofie_van_damme.md"
+  },
+  {
+    "source_id": "src_103",
+    "system": "SharePoint",
+    "type": "Employee Handbook",
+    "format": "md",
+    "mime_type": "text/markdown",
+    "title": "03_personeelshandboek.md",
+    "owner_team": "HR Communications",
+    "uri": "sharepoint://ikea/hr/03_personeelshandboek.md",
+    "raw_path": "data/raw/ikea/03_personeelshandboek.md"
+  },
+  {
+    "source_id": "src_104",
+    "system": "SharePoint",
+    "type": "Company Agreement",
+    "format": "md",
+    "mime_type": "text/markdown",
+    "title": "04_ondernemingsakkoord_eindejaarspremie.md",
+    "owner_team": "Social Relations",
+    "uri": "sharepoint://ikea/social/04_ondernemingsakkoord_eindejaarspremie.md",
+    "raw_path": "data/raw/ikea/04_ondernemingsakkoord_eindejaarspremie.md"
+  },
+  {
+    "source_id": "src_105",
+    "system": "Confluence",
+    "type": "Policy Page",
+    "format": "md",
+    "mime_type": "text/markdown",
+    "title": "05_mobiliteitsbeleid.md",
+    "owner_team": "Mobility & Facilities",
+    "uri": "confluence://ikea/mobility/05_mobiliteitsbeleid.md",
+    "raw_path": "data/raw/ikea/05_mobiliteitsbeleid.md"
+  },
+  {
+    "source_id": "src_106",
+    "system": "Confluence",
+    "type": "Policy Page",
+    "format": "md",
+    "mime_type": "text/markdown",
+    "title": "06_telewerkbeleid.md",
+    "owner_team": "HR Policy",
+    "uri": "confluence://ikea/hr/06_telewerkbeleid.md",
+    "raw_path": "data/raw/ikea/06_telewerkbeleid.md"
+  },
+  {
+    "source_id": "src_107",
+    "system": "Confluence",
+    "type": "Policy Page",
+    "format": "md",
+    "mime_type": "text/markdown",
+    "title": "07_maaltijdchequebeleid.md",
+    "owner_team": "Benefits",
+    "uri": "confluence://ikea/benefits/07_maaltijdchequebeleid.md",
+    "raw_path": "data/raw/ikea/07_maaltijdchequebeleid.md"
+  },
+  {
+    "source_id": "src_108",
+    "system": "Exchange",
+    "type": "Welcome Letter",
+    "format": "md",
+    "mime_type": "text/markdown",
+    "title": "08_welkomstbrief.md",
+    "owner_team": "HR Recruitment",
+    "uri": "exchange://ikea/recruitment/08_welkomstbrief.md",
+    "raw_path": "data/raw/ikea/08_welkomstbrief.md"
+  },
+  {
+    "source_id": "src_109",
+    "system": "SD Worx HR Platform",
+    "type": "Employee Record Export",
+    "format": "md",
+    "mime_type": "text/markdown",
+    "title": "09_personeelsfiche_sdworx_export.md",
+    "owner_team": "Payroll Operations",
+    "uri": "sdworx://ikea/hr/09_personeelsfiche_sdworx_export.md",
+    "raw_path": "data/raw/ikea/09_personeelsfiche_sdworx_export.md"
+  },
+  {
+    "source_id": "src_110",
+    "system": "SD Worx Payroll",
+    "type": "Payslip",
+    "format": "md",
+    "mime_type": "text/markdown",
+    "title": "10_loonbrief_maart_2026.md",
+    "owner_team": "Payroll Operations",
+    "uri": "sdworx://ikea/payroll/10_loonbrief_maart_2026.md",
+    "raw_path": "data/raw/ikea/10_loonbrief_maart_2026.md"
   }
 ]

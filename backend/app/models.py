@@ -39,6 +39,8 @@ class KnowledgeConflict(BaseModel):
     conflict_severity: Severity
     source_a: Source
     source_b: Source
+    # 3rd, 4th ... distinct values when more than two documents disagree (additive, optional)
+    additional_sources: list[Source] = Field(default_factory=list)
     priority_score: float = 0
     assigned_sme: SMERef
     status: ConflictStatus = "OPEN"

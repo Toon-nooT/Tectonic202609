@@ -76,7 +76,7 @@ def sentence_around(text: str, start: int, end: int) -> str:
         right = len(text)
     else:
         right = m.start() if m.group(0) == "\n" else m.end()
-    return re.sub(r"^(?:[-*\u2022]\s+|\d+[.)]\s+)", "", text[left:right].strip())
+    return re.sub(r"^(?:[-*\u2022]\s+|\d+[.)]\s+|\d+\.\d+\s+(?=[A-Z]))", "", text[left:right].strip())
 
 
 def normalize_value(kind: str, raw: str) -> str:
@@ -300,10 +300,11 @@ def run_scan(
         if len(by_value) < 2:
             steps.append(f"[{rule.topic}] {len(facts)} fact(s), consistent -> no conflict")
             continue
-        fa, fb = list(by_value.values())[:2]
+        fa, fb, *extra = by_value.values()
         steps.append(
             f"[{rule.topic}] CONFLICT: '{fa.value_raw}' ({fa.entry.title}) vs "
             f"'{fb.value_raw}' ({fb.entry.title})"
+            + "".join(f" vs '{x.value_raw}' ({x.entry.title})" for x in extra)
         )
 
         # 4) business context + SME routing
@@ -332,6 +333,7 @@ def run_scan(
                 conflict_severity=rule.severity,
                 source_a=_to_source(fa),
                 source_b=_to_source(fb),
+                additional_sources=[_to_source(x) for x in extra],
                 assigned_sme=SMERef(id=sme.id, name=sme.name, role=sme.role),
             )
         )

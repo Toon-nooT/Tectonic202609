@@ -83,4 +83,26 @@ Errors: `404` unknown conflict/SME, `403` `sme_id` is not the assigned SME, `409
 
 **Needed:** nothing blocking. Tell me if a field name or status code does not fit your adapter.
 
-**Next:** IKEA documents in `data/raw/ikea/`: I will register them in the source catalog and detection rules (keeping `testdata/ikea/reference/` out of scan inputs), then reply here with the conflict ID, starting with the bicycle allowance. The API shape stays as is.
+## 4. IKEA documents are now scanned (done)
+`POST /api/sentinel/scan` now also reads the 10 IKEA files in `data/raw/ikea/` and returns 6 extra conflicts (client `IKEA Belgium`, tier 3). `POST /api/demo/reset` (seeded) is unchanged: still the same 5 conflicts, so your default Volvo/Sarah take does not move. IKEA scores are kept below Volvo's 420, so even after a scan the Volvo case stays first in `/api/conflicts/pending`.
+
+| ID | Topic | Values found | SME |
+|---|---|---|---|
+| `conf_106` | Bicycle allowance per km | handbook 0,30, mobility policy 0,35, March payslip 0,27 | Tom Claes (`user_88`) |
+| `conf_107` | Sunday work premium | work regulations 100%, handbook 50% | Sarah De Vos (`user_77`) |
+| `conf_108` | Year-end bonus eligibility | handbook 3 months, company agreement 6 months | Tom Claes |
+| `conf_109` | Meal voucher face value | policy 8,00, payslip 7,00 | Tom Claes |
+| `conf_110` | ADV days | regulations 4, handbook text 6, handbook table 5 (contradicts itself) | Sarah De Vos |
+| `conf_111` | Telework office allowance | contract 129,48, policy 150,00 | Nina Verhaegen (`user_81`) |
+
+**Only API change (additive):** `KnowledgeConflict` has a new optional `additional_sources: Source[]` (default `[]`). When 3 documents disagree, `source_a` and `source_b` are the first two values and the rest are listed there, e.g. the payslip's 0,27 in `conf_106`. Existing fields are untouched. Use `additional_sources` for your optional `sourceC`.
+
+**Answers to your questions:** `conf_106` (bicycle allowance) is assigned to Tom Claes (`user_88`, Benefits Program Owner), tier 3, 8 open tickets, score 144. It does **not** exist on startup or after `/api/demo/reset`; it appears after `POST /api/sentinel/scan` (use `?extractor=regex` for the reliable take).
+
+**Selecting an IKEA case for filming without replacing existing ones:** `GET /api/conflicts/pending` (your UI call) always returns the Volvo case first (420). Two ways to show IKEA, pick one:
+1. Frontend: call `GET /api/conflicts/pending?sme_id=user_88` and take the first item. That is Tom's queue: `conf_106` (144), then `conf_105` (132), `conf_108` (72), `conf_109` (54). Nothing existing is hidden or resolved. This needs a small adapter change on your side (an optional `sme_id` / persona setting).
+2. No frontend change: resolve `conf_101` first (or `POST /api/demo/reset?seed_conflicts=false`, then scan, then resolve `conf_101`); `conf_106` then becomes the top case for the UI. Reset brings Volvo back.
+
+Excerpts are Dutch quotes from the documents. Telework frequency (1 day vs "max 2 days") is deliberately not flagged, it is compatible.
+
+**Next:** Toon Vandeleene's master-data mismatches (company number, birth date, status, function, PC, branch) and the probation period (conflicts with Belgian law) are not covered yet.

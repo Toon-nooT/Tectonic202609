@@ -68,6 +68,103 @@
       "extractors": [
         { "pattern": "shifts ending after (?P<value>\\d{1,2}:\\d{2})" }
       ]
+    },
+    {
+      "rule_id": "ikea_bicycle_allowance",
+      "conflict_id": "conf_106",
+      "topic": "IKEA Bicycle Allowance per km",
+      "description": "The bicycle commuting allowance per kilometre in EUR for IKEA Belgium employees (fietsvergoeding), as stated in a policy, handbook or the amount actually applied on a payslip. Value is the amount per km, e.g. 0,35. Ignore public transport and car reimbursements.",
+      "client_context": "IKEA Belgium",
+      "severity": "MEDIUM",
+      "normalize": "number",
+      "extractors": [
+        { "pattern": "€\\s*(?P<value>\\d+,\\d+) per (?:gereden )?kilometer" },
+        {
+          "pattern": "Fietsvergoeding \\| \\d+ km \\| €\\s*(?P<value>\\d+,\\d+)",
+          "statement": "Loonbrief maart 2026: fietsvergoeding uitbetaald aan € {value} per km."
+        }
+      ]
+    },
+    {
+      "rule_id": "ikea_sunday_premium",
+      "conflict_id": "conf_107",
+      "topic": "IKEA Sunday Work Premium",
+      "description": "The premium (toeslag) in percent on the hourly wage for voluntary Sunday work at IKEA Belgium, as stated in a policy or applied on a payslip. Value is the percentage, e.g. 50 or 100.",
+      "client_context": "IKEA Belgium",
+      "severity": "MEDIUM",
+      "normalize": "number",
+      "extractors": [
+        { "pattern": "toeslag van (?P<value>\\d+)%" },
+        {
+          "pattern": "Toeslag zondagwerk \\((?P<value>\\d+)%\\)",
+          "statement": "Loonbrief maart 2026: toeslag zondagwerk toegepast aan {value}%."
+        }
+      ]
+    },
+    {
+      "rule_id": "ikea_bonus_tenure",
+      "conflict_id": "conf_108",
+      "topic": "IKEA Year-End Bonus Eligibility",
+      "description": "The minimum seniority (anciënniteit) in months an IKEA Belgium employee needs to be entitled to the year-end bonus (eindejaarspremie). Value is the number of months, e.g. 3 or 6. Ignore the probation period and health-insurance waiting periods.",
+      "client_context": "IKEA Belgium",
+      "severity": "MEDIUM",
+      "normalize": "number",
+      "extractors": [
+        { "pattern": "minstens (?P<value>\\d+) maanden anci" },
+        { "pattern": "premie vanaf (?P<value>\\d+) maanden anci" }
+      ]
+    },
+    {
+      "rule_id": "ikea_meal_voucher_value",
+      "conflict_id": "conf_109",
+      "topic": "IKEA Meal Voucher Face Value",
+      "description": "The nominal (face) value in EUR of one meal voucher (maaltijdcheque) at IKEA Belgium, as stated in policy or applied on a payslip. Value is the amount, e.g. 8,00. Ignore employer and employee contributions.",
+      "client_context": "IKEA Belgium",
+      "severity": "LOW",
+      "normalize": "number",
+      "extractors": [
+        {
+          "pattern": "Nominale waarde \\| €\\s*(?P<value>\\d+,\\d+)",
+          "statement": "Maaltijdchequebeleid: nominale waarde van een maaltijdcheque is € {value}."
+        },
+        {
+          "pattern": "Maaltijdcheques \\S+ aantal \\| \\d+ \\| €\\s*(?P<value>\\d+,\\d+)",
+          "statement": "Loonbrief maart 2026: maaltijdcheques berekend aan € {value} per stuk."
+        }
+      ]
+    },
+    {
+      "rule_id": "ikea_adv_days",
+      "conflict_id": "conf_110",
+      "topic": "IKEA ADV Days (Extra Leave)",
+      "description": "The number of extra leave days (ADV, arbeidsduurvermindering) per year for full-time IKEA Belgium employees. Value is the number of days, e.g. 4. Documents may contradict themselves (text versus table): extract each mention separately.",
+      "client_context": "IKEA Belgium",
+      "severity": "MEDIUM",
+      "normalize": "number",
+      "extractors": [
+        { "pattern": "(?P<value>\\d+) extra verlofdagen \\(ADV\\)" },
+        { "pattern": "(?P<value>\\d+) extra ADV-dagen" },
+        {
+          "pattern": "ADV-dagen \\| (?P<value>\\d+) \\|",
+          "statement": "Verloftabel: ADV-dagen (voltijds) = {value}."
+        }
+      ]
+    },
+    {
+      "rule_id": "ikea_telework_allowance",
+      "conflict_id": "conf_111",
+      "topic": "IKEA Telework Office Allowance",
+      "description": "The flat monthly office allowance (forfaitaire bureauvergoeding) in EUR for structural telework at IKEA Belgium, per policy or individual contract. Value is the amount per month, e.g. 129,48. Ignore how many telework days are allowed.",
+      "client_context": "IKEA Belgium",
+      "severity": "MEDIUM",
+      "normalize": "number",
+      "extractors": [
+        { "pattern": "bureauvergoeding(?::| van)\\s*€\\s*(?P<value>\\d+,\\d+) per maand" },
+        {
+          "pattern": "Bureauvergoeding telewerk(?: \\|)+ €\\s*(?P<value>\\d+,\\d+)",
+          "statement": "Loonbrief maart 2026: bureauvergoeding telewerk uitbetaald: € {value}."
+        }
+      ]
     }
   ]
 }

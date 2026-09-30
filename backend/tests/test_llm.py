@@ -72,7 +72,7 @@ def test_llm_error_falls_back_to_regex_in_auto_mode(monkeypatch):
 
     monkeypatch.setattr(llm, "extract_facts", boom)
     body = client.post("/api/sentinel/scan", params={"extractor": "auto"}).json()
-    assert body["conflicts_detected"] == 5
+    assert body["conflicts_detected"] == 11
     assert all(d["extractor"] == "regex" for d in body["documents"])
     assert any("falling back to regex" in s for s in body["steps"])
 
