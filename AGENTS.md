@@ -3,7 +3,7 @@
 Read [agents_communication/README.md](agents_communication/README.md) and the latest notes in that folder before making changes.
 
 - Robin and his AI agent own `frontend/`.
-- Toon Beerten and his AI agent own the backend and seed data.
+- Toon Beerten and his IRIS/Nebius AI agent own the backend and seed data.
 - Toon Vandeleene owns the film concept, staging and filming. He is not the backend developer.
 - The current demo is a car-display experience. The early-meeting concept has been dropped.
 - Preserve other contributors' work. Keep changes within your area unless coordinated in `agents_communication/`.

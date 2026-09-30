@@ -1,0 +1,35 @@
+.car-map{position:absolute;inset:0;overflow:hidden;background:#182227;isolation:isolate}
+.car-map>svg{display:block;width:100%;height:100%}
+.car-map svg text{font-family:'DM Sans',Arial,sans-serif;user-select:none}
+.map-neighbourhoods{fill:#1b262c;stroke:#1b262c;stroke-width:15;stroke-linejoin:round}
+.map-parks{fill:#203832;stroke:#223c34;stroke-width:3;stroke-linejoin:round}
+.map-water{fill:none;stroke:#132e40;stroke-width:14;stroke-linecap:round;stroke-linejoin:round}
+.map-water path:nth-child(2){stroke-width:11}.map-water path:nth-child(3),.map-water path:nth-child(4){stroke-width:8}
+.map-minor-casing{fill:none;stroke:#142026;stroke-width:5.5;stroke-linecap:round;stroke-linejoin:round}
+.map-local-roads{fill:none;stroke:#344148;stroke-width:3.1;stroke-linecap:round;stroke-linejoin:round}
+.map-major-casing{fill:none;stroke:#152127;stroke-width:10;stroke-linecap:round;stroke-linejoin:round}
+.map-avenues{fill:none;stroke:#49545a;stroke-width:6.3;stroke-linecap:round;stroke-linejoin:round}
+.map-interchange-casing{fill:none;stroke:#111b21;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+.map-interchanges{fill:none;stroke:#646966;stroke-width:5.5;stroke-linecap:round;stroke-linejoin:round}
+.map-motorway-casing{fill:none;stroke:#111d24;stroke-width:20;stroke-linecap:round;stroke-linejoin:round}
+.map-motorway{fill:none;stroke:#73756b;stroke-width:12;stroke-linecap:round;stroke-linejoin:round}
+.map-motorway-centre{fill:none;stroke:#313e41;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.map-route-outline{fill:none;stroke:#132d49;stroke-width:20;stroke-linecap:round;stroke-linejoin:round}
+.map-route{fill:none;stroke:#6db2fa;stroke-width:12;stroke-linecap:round;stroke-linejoin:round}
+.map-traffic-amber{fill:none;stroke:#f5b350;stroke-width:12;stroke-linecap:round;stroke-linejoin:round}
+.map-traffic-red{fill:none;stroke:#eb786c;stroke-width:12;stroke-linecap:round;stroke-linejoin:round}
+.map-city{fill:#d4dce0;font-size:32px;letter-spacing:.4px;font-weight:500;paint-order:stroke;stroke:#182227;stroke-width:5;stroke-linejoin:round}
+.map-district{fill:#9daeb5;font-size:16px;font-weight:400;letter-spacing:.4px;paint-order:stroke;stroke:#182227;stroke-width:4;stroke-linejoin:round}
+.map-park-label{fill:#739685;font-size:10px;letter-spacing:.15px}
+.map-water-label{fill:#54819d;font-size:11px;letter-spacing:2px;font-style:italic}
+.map-road-label{fill:#71818a;font-size:9px;letter-spacing:.4px;paint-order:stroke;stroke:#182227;stroke-width:3}
+.map-route-shield rect{fill:#315d50;stroke:#86b59b;stroke-width:.8}.map-route-shield text{fill:#e9eee9;font-size:11px;font-weight:600;letter-spacing:.3px}
+.map-route-shield.secondary rect{fill:#3c4850;stroke:#8a999f}.map-route-shield.secondary text{font-size:10px}
+.map-destination>circle:first-child{fill:#e5edf4;stroke:#182227;stroke-width:3}.map-destination>circle:nth-child(2){fill:#557fa5}
+.map-destination>path{fill:#263841;stroke:#4e616b;stroke-width:.8}.map-destination text{font-size:9px;fill:#bbc9cf}
+.map-position-ring{fill:#1b364d;fill-opacity:.6;stroke:#6a95bb;stroke-width:1;stroke-opacity:.45}
+.map-car-arrow-outline{fill:#e8f2ff;stroke:#264a71;stroke-width:1;stroke-linejoin:round}
+.map-car-arrow{fill:#75b5ff;stroke:#95c7ff;stroke-width:.7;stroke-linejoin:round}
+.map-attribution{fill:#81959f;font-size:9px;letter-spacing:.5px;paint-order:stroke;stroke:#152127;stroke-width:3}
+@media(prefers-reduced-motion:no-preference){.map-position-glow{animation:map-location-breathe 5s ease-in-out infinite}}
+@keyframes map-location-breathe{0%,100%{opacity:.65}50%{opacity:1}}

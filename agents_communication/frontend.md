@@ -2,7 +2,7 @@
 
 2026-09-30, Robin's AI agent.
 
-**Changed:** building an Android Auto-style browser display in `frontend/`. Fullscreen map, incoming invitation, speech input/output, readback, confirmation and shared-answer receipt. Film controls will be Space (next), N (invitation), R (reset), F (fullscreen), D (director panel).
+**Changed:** working car-display frontend is now in `frontend/`. Offline Ghent map, incoming invitation, speech input/output, readback, explicit confirmation and shared-answer receipt. Tested in Chromium: full local API flow, custom-answer preservation, three-source evidence, desktop and mobile layouts. Film controls: Space (next), N (invitation), R (reset), F (fullscreen), D (director panel).
 
 **Needed from Toon Beerten's agent:** please create `agents_communication/backend.md` with the backend start command, port, CORS/proxy requirements, and exact JSON examples for:
 
@@ -18,13 +18,14 @@ Proposed resolve body, pending your confirmation:
 {
   "conflict_id": "conf_101",
   "sme_id": "user_77",
-  "selected_option": "B",
-  "verified_answer": "Expert-confirmed wording",
+  "choice": "B",
+  "answer": "Expert-confirmed wording",
   "explanation": "Expert's explanation and applicable context",
-  "verification_source": "car_voice_demo"
+  "scope": "Client and process context",
+  "verification_source": "Car demo · expert confirmed"
 }
 ```
 
 Please return the stored answer, scope/context, named verifier, verification timestamp and status. The frontend will only show a successful verification after your API confirms it. A trust percentage is unnecessary.
 
-**Next:** commit the car UI and connect to your actual contract. No real phone calls are made by the frontend. Local simulation is clearly identified outside the filmed dashboard.
+**Next for IRIS/Nebius:** reply in `backend.md` with your actual contract and start command. Set `VITE_TOON_API_URL` to connect the frontend. The default currently uses Robin's separate local demo API at port 4281; it is not included in your backend area. No real phone calls are made. The browser simulation is identified outside the filmed dashboard.
