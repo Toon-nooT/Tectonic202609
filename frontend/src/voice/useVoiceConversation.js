@@ -22,8 +22,12 @@ export function useVoiceConversation(props) {
     if(!question?.id) { latest.current.onError?.(new Error('Load a question before starting voice.')); return; }
     starting.current=true;const run=++generation.current;guard.current.clear();setStatus('connecting');
     const current=()=>generation.current===run;
+    // Audio can continue for the farewell after persistence. Its microphone
+    // and playback callbacks must not take the UI out of the saved state.
+    let completed=false,saving=false;
+    const phase=value=>{if(current()&&!completed&&!saving)latest.current.onPhase?.(value);};
     audioGate.current?.close();
-    const gate=new RoomAudioGate({setMuted:muted=>{if(current())session.current?.setMicMuted(muted);},onReady:ready=>{if(current()){setInputReady(ready);if(ready){guard.current.listening();if(!guard.current.draft)latest.current.onPhase?.('listening');}}}});
+    const gate=new RoomAudioGate({setMuted:muted=>{if(current())session.current?.setMicMuted(muted);},onReady:ready=>{if(current()){setInputReady(ready);if(ready&&!completed&&!saving){guard.current.listening();if(!guard.current.draft)phase('listening');}}}});
     audioGate.current=gate;gate.update({enabled:latest.current.noisyRoom!==false,speaking:true});
     try {
       // Request permission while still in the click gesture; the SDK owns the
@@ -33,31 +37,34 @@ export function useVoiceConversation(props) {
       const response=await fetch('/voice/session',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
       const credentials=await response.json();if(!response.ok)throw new Error(credentials.error || 'Voice service unavailable.');
       if(!current())return;
-      latest.current.onPhase?.('briefing');
+      phase('briefing');
       const active=await Conversation.startSession({
         signedUrl:credentials.signedUrl,connectionType:'websocket',
         dynamicVariables:{question:question.question,expert_name:question.expertName,client:question.client,topic:question.title},
         onConnect:()=>{if(current())setStatus('connected');},
         onDisconnect:()=>{if(current()){gate.close();setInputReady(false);session.current=null;starting.current=false;guard.current.clear();setStatus('idle');setSpeaking(false);latest.current.onEnded?.();}},
-        onError:(message)=>{if(current()){gate.close();setInputReady(false);generation.current++;starting.current=false;guard.current.clear();const active=session.current;session.current=null;void active?.endSession();setStatus('error');setSpeaking(false);latest.current.onError?.(new Error(message));}},
-        onModeChange:({mode})=>{if(!current())return;setSpeaking(mode==='speaking');if(mode==='speaking')guard.current.speaking();gate.update({enabled:latest.current.noisyRoom!==false,speaking:mode==='speaking'});},
-        onInterruption:()=>{if(current())guard.current.interrupt();},
-        onAgentResponseCorrection:()=>{if(current())guard.current.interrupt();},
+        onError:(message)=>{if(current()){gate.close();setInputReady(false);generation.current++;starting.current=false;guard.current.clear();const active=session.current;session.current=null;void active?.endSession();setSpeaking(false);if(completed){setStatus('idle');latest.current.onEnded?.();}else{setStatus('error');latest.current.onError?.(new Error(message));}}},
+        onModeChange:({mode})=>{if(!current())return;setSpeaking(mode==='speaking');if(mode==='speaking'&&!completed&&!saving)guard.current.speaking();gate.update({enabled:latest.current.noisyRoom!==false,speaking:mode==='speaking'});},
+        onInterruption:()=>{if(current()&&!completed&&!saving)guard.current.interrupt();},
+        onAgentResponseCorrection:()=>{if(current()&&!completed&&!saving)guard.current.interrupt();},
         onMessage:({source,message})=>{
           if(!current())return;const role=source==='user'?'user':'agent';latest.current.onTranscript?.({role,text:message});
-          if(role==='agent'){guard.current.agent(message);gate.update({enabled:latest.current.noisyRoom!==false,speaking:true});}
-          else {guard.current.user(message);if(/^(stop|later|not now|cancel|leave it|stop please|maybe later)$/.test(normalize(message)))void stop();}
+          if(role==='agent'){if(!completed&&!saving)guard.current.agent(message);gate.update({enabled:latest.current.noisyRoom!==false,speaking:true});}
+          else {if(!completed&&!saving)guard.current.user(message);if(/^(stop|later|not now|cancel|leave it|stop please|maybe later)$/.test(normalize(message)))void stop();}
         },
         clientTools:{
           prepare_clarification:({text})=>{
             if(!current())return 'Session ended.';
-            try {const draft=guard.current.prepare(text);latest.current.onDraft?.(draft.text);latest.current.onPhase?.('review');return JSON.stringify({...draft,instruction:'Read text EXACTLY, then ask Shall I save that clarification with your name? Wait for user answer.'});}catch(error){return JSON.stringify({error:error.message});}
+            if(completed||saving)return JSON.stringify({error:completed?'The clarification is already saved. End the conversation.':'The confirmed clarification is being saved. Wait for the result.'});
+            try {const draft=guard.current.prepare(text);latest.current.onDraft?.(draft.text);phase('review');return JSON.stringify({...draft,instruction:'Read text EXACTLY, then ask Shall I save that clarification with your name? Wait for user answer.'});}catch(error){return JSON.stringify({error:error.message});}
           },
           confirm_clarification:async({draft_id})=>{
             if(!current())return JSON.stringify({error:'Session ended.'});
+            if(completed||saving)return JSON.stringify({saved:completed,error:completed?'The clarification is already saved. Do not save again.':'A save is already in progress.'});
             let text;try{text=guard.current.consume(draft_id);}catch(error){return JSON.stringify({saved:false,error:error.message,instruction:'Ask for a fresh explicit yes after reading the current draft and exact save question. Do not claim saved.'});}
-            try {const result=await submitAnswer(question,{choice:'custom',explanation:text});if(current()){latest.current.onPhase?.('done');latest.current.onSaved?.(result);}return JSON.stringify({saved:result.status==='verified',pending:result.status==='pending_review',text,status:result.status,instruction:result.status==='verified'?'Say a brief thank you. The clarification is saved. Do not ask another question.':'The answer is only a pending draft. Say it was submitted for review, not published.'});}
-            catch(error){if(current())latest.current.onError?.(error);return JSON.stringify({saved:false,error:error.message});}
+            saving=true;
+            try {const result=await submitAnswer(question,{choice:'custom',explanation:text});if(current()){completed=true;saving=false;latest.current.onSaved?.(result);latest.current.onPhase?.('done');}return JSON.stringify({saved:result.status==='verified',pending:result.status==='pending_review',text,status:result.status,instruction:result.status==='verified'?'Say a brief thank you. The clarification is saved. Do not ask another question.':'The answer is only a pending draft. Say it was submitted for review, not published.'});}
+            catch(error){saving=false;if(current())latest.current.onError?.(error);return JSON.stringify({saved:false,error:error.message});}
           },
           end_session:()=>{setTimeout(()=>{if(current())void stop();},1000);return 'Ending without any further changes.';},
         },
