@@ -192,12 +192,15 @@ def resolve_conflict(req: ResolveRequest) -> VerifiedKnowledge:
     if conflict.assigned_sme.id != verifier.id:
         raise HTTPException(status_code=403, detail="Verifier is not the assigned SME")
 
+    custom = (req.custom_answer or "").strip()
     if req.chosen_option == "A":
         answer, overridden, trust = conflict.source_a.excerpt, conflict.source_b, 0.98
     elif req.chosen_option == "B":
         answer, overridden, trust = conflict.source_b.excerpt, conflict.source_a, 0.98
     else:
-        answer, overridden, trust = (req.custom_answer or "").strip(), None, 0.92
+        answer, overridden, trust = custom, None, 0.92
+    if req.chosen_option != "CUSTOM" and custom:
+        answer = custom  # expert-confirmed wording replaces the raw source excerpt
 
     if overridden is not None:
         note = f"Overrode [{overridden.type}] {overridden.title}: \"{overridden.excerpt}\""
@@ -207,7 +210,16 @@ def resolve_conflict(req: ResolveRequest) -> VerifiedKnowledge:
             f"[{conflict.source_b.type}] {conflict.source_b.title} with a custom answer"
         )
 
-    return store.resolve(conflict, answer, verifier, req.verification_source, trust, note)
+    return store.resolve(
+        conflict,
+        answer,
+        verifier,
+        req.verification_source,
+        trust,
+        note,
+        explanation=req.explanation,
+        scope=req.scope,
+    )
 
 
 # ---------- Demo helpers ----------

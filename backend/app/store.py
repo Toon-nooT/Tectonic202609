@@ -100,6 +100,8 @@ class Store:
         verification_source: str,
         trust_score: float,
         archived_note: str,
+        explanation: Optional[str] = None,
+        scope: Optional[str] = None,
     ) -> VerifiedKnowledge:
         with self._lock:
             conflict.status = "RESOLVED"
@@ -108,6 +110,8 @@ class Store:
                 topic=conflict.topic,
                 client_context=conflict.client_context,
                 verified_answer=answer,
+                explanation=explanation,
+                scope=scope,
                 verified_by=f"{verifier.name} ({verifier.role})",
                 verified_at=datetime.now(timezone.utc),
                 verification_source=verification_source,

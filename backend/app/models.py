@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import AliasChoices, BaseModel, Field, model_validator
 
 Severity = Literal["HIGH", "MEDIUM", "LOW"]
 ConflictStatus = Literal["OPEN", "RESOLVED"]
@@ -49,6 +49,9 @@ class VerifiedKnowledge(BaseModel):
     topic: str
     client_context: str
     verified_answer: str
+    explanation: Optional[str] = None
+    scope: Optional[str] = None
+    status: Literal["VERIFIED"] = "VERIFIED"
     verified_by: str
     verified_at: datetime
     verification_source: str
@@ -105,10 +108,18 @@ class CommuteTrafficRequest(BaseModel):
 
 
 class ResolveRequest(BaseModel):
+    """SME decision. Frontend names (sme_id, choice, answer) and original names both work."""
+
     conflict_id: str
-    chosen_option: Literal["A", "B", "CUSTOM"]
-    custom_answer: Optional[str] = None
-    verifier_id: str
+    chosen_option: Literal["A", "B", "CUSTOM"] = Field(
+        validation_alias=AliasChoices("chosen_option", "choice")
+    )
+    custom_answer: Optional[str] = Field(
+        default=None, validation_alias=AliasChoices("custom_answer", "answer")
+    )
+    verifier_id: str = Field(validation_alias=AliasChoices("verifier_id", "sme_id"))
+    explanation: Optional[str] = None
+    scope: Optional[str] = None
     verification_source: str = "Early-Finish Micro-Sync"
 
     @model_validator(mode="after")

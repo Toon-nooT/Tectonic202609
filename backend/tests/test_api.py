@@ -129,3 +129,27 @@ def test_demo_reset_reopens_conflicts():
     )
     assert client.post("/api/demo/reset").json()["open_conflicts"] == 5
     assert client.get("/api/knowledge").json() == []
+
+
+def test_resolve_accepts_frontend_contract():
+    r = client.post(
+        "/api/conflicts/resolve",
+        json={
+            "conflict_id": "conf_101",
+            "sme_id": SARAH,
+            "choice": "B",
+            "answer": "150% after 7.5 hours for night shifts (PC 200).",
+            "explanation": "Confirmed in the latest CAO update.",
+            "scope": "Volvo Group, PC 200 night shifts",
+            "verification_source": "Car demo - expert confirmed",
+        },
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["status"] == "VERIFIED"
+    assert body["verified_answer"] == "150% after 7.5 hours for night shifts (PC 200)."
+    assert body["explanation"] == "Confirmed in the latest CAO update."
+    assert body["scope"] == "Volvo Group, PC 200 night shifts"
+    assert body["verified_by"] == "Sarah De Vos (Senior Payroll Lead)"
+    assert body["verified_at"]
+    assert body["verification_source"] == "Car demo - expert confirmed"
