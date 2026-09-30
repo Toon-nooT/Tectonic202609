@@ -227,8 +227,14 @@ const STEPS = [
 const $steps = document.getElementById("steps"), $stage = document.getElementById("stage"), $deck = document.getElementById("deck");
 let cur = 0, timer = null, auto = true;
 
-$steps.innerHTML = STEPS.map((s,i) =>
-  `<button class="step" data-i="${i}"><span class="n">${i+1}</span><span><b>${s.t}</b><span class="d">${s.d}</span></span><span class="bar"></span></button>`).join("");
+// Static, trusted markup only: parse it as a separate document and move the nodes in (no innerHTML).
+function setHtml(el, html){
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  el.replaceChildren(...doc.body.childNodes);
+}
+
+setHtml($steps, STEPS.map((s,i) =>
+  `<button class="step" data-i="${i}"><span class="n">${i+1}</span><span><b>${s.t}</b><span class="d">${s.d}</span></span><span class="bar"></span></button>`).join(""));
 const $btns = [...$steps.children];
 $deck.style.setProperty("--dur", DUR + "ms");
 $steps.style.setProperty("--dur", DUR + "ms");
@@ -239,7 +245,7 @@ function show(i){
     b.classList.toggle("on", k === cur);
     const bar = b.querySelector(".bar"); const c = bar.cloneNode(); b.replaceChild(c, bar);
   });
-  $stage.innerHTML = STEPS[cur].html();
+  setHtml($stage, STEPS[cur].html());
   clearTimeout(timer);
   if (auto) timer = setTimeout(() => show(cur + 1), DUR);
 }
