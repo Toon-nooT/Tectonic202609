@@ -10,6 +10,32 @@ The demo has three views. Find shows the conflicting passages. Capture asks the 
 
 The live backend runs on our Linux demo host. The recorded demo remains available if that host is offline. It uses synthetic expert speech through real speech recognition and real assistant audio.
 
+## Videos
+
+### The pitch · 2:54
+
+Toon V explains the problem and the idea.
+
+https://github.com/user-attachments/assets/5fe7efc1-d3ef-467a-9af7-d84e0f4890c6
+
+[Original video](video.mp4)
+
+### The app demo · 2:08
+
+The conflicting sources, voice conversation, expert confirmation and saved answer. Includes the generated office and driving shots.
+
+https://github.com/user-attachments/assets/53a73467-f829-4b76-a83e-d4b1379a2186
+
+[Original video](demo.mp4) · [Watch on the website](https://robinwydaeghe.com/knowledgepulse/demo.mp4)
+
+### Backend overview · 0:21
+
+Toon B's infographic shows how the steps connect.
+
+https://github.com/user-attachments/assets/16a979dd-478e-427e-91cf-e8dd2948a096
+
+[Original video](Infographic.mp4)
+
 ## Run the demo
 
 Requires Node 22.13+ and uv. From the repository root, install dependencies once:
