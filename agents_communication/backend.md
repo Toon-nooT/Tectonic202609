@@ -106,3 +106,8 @@ Errors: `404` unknown conflict/SME, `403` `sme_id` is not the assigned SME, `409
 Excerpts are Dutch quotes from the documents. Telework frequency (1 day vs "max 2 days") is deliberately not flagged, it is compatible.
 
 **Next:** Toon Vandeleene's master-data mismatches (company number, birth date, status, function, PC, branch) and the probation period (conflicts with Belgian law) are not covered yet.
+
+
+## 5. Backend explainer page (new, standalone)
+**Changed:** new folder `infographic/` with one self-contained `index.html` (no build, no server, no API calls). It explains the backend for the hackathon submission: pipeline, extraction and grounding, priority, triggers, resolve, search. Open the file in a browser. Static data comes from a real scan of `data/raw` (fictional IKEA documents).
+**Needed:** nothing. It is separate from `frontend/` and does not touch it or the API.

@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KnowledgePulse Sentinel: how the backend works</title>
+<meta name="description" content="Interactive explanation of the KnowledgePulse backend: from raw files to a verified, searchable answer. All data shown is fictional.">
+<style>
+:root{
+  --bg:#0b1220;--panel:#121a2b;--panel2:#182238;--line:#26334f;--text:#e6ecf5;--muted:#9aa8bf;
+  --green:#3ddc97;--amber:#ffb454;--red:#ff6b6b;--blue:#5aa9ff;--violet:#b49bff;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--blue)}
+code,pre,.mono{font-family:var(--mono)}
+code{background:#0e1626;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.88em}
+pre{background:#0a1120;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;font-size:.82rem;line-height:1.55;margin:0}
+h1,h2,h3{line-height:1.2;margin:0}
+h2{font-size:1.7rem;margin-bottom:.4rem}
+h3{font-size:1.05rem}
+p{margin:.4rem 0 1rem}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+section{padding:64px 0;border-top:1px solid var(--line)}
+.lead{color:var(--muted);max-width:760px}
+.kicker{color:var(--green);font:600 .78rem var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h3{margin-bottom:.35rem}
+.muted{color:var(--muted)}
+.tag{display:inline-block;font:600 .72rem var(--mono);padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.tag.green{color:var(--green);border-color:#1f6a4b}.tag.amber{color:var(--amber);border-color:#7a5520}.tag.red{color:var(--red);border-color:#7a2f2f}.tag.blue{color:var(--blue);border-color:#2c5a8c}
+button,select,input,textarea{font:inherit;color:inherit}
+button{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 14px;cursor:pointer}
+button:hover{border-color:var(--blue)}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+button.primary{background:var(--green);color:#04150e;border-color:var(--green);font-weight:600}
+button[aria-pressed="true"],button.on{border-color:var(--green);color:var(--green)}
+mark{background:#3a2f0a;color:var(--amber);border-radius:4px;padding:0 3px}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.06em}
+.scroll{overflow-x:auto}
+
+/* nav */
+nav{position:sticky;top:0;z-index:20;background:#0b1220ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:4px;align-items:center;overflow-x:auto;padding-top:8px;padding-bottom:8px}
+nav b{margin-right:10px;white-space:nowrap;font-size:.9rem}
+nav a{color:var(--muted);text-decoration:none;font-size:.82rem;padding:5px 10px;border-radius:8px;white-space:nowrap}
+nav a:hover{color:var(--text);background:var(--panel)}
+
+/* hero */
+.hero{padding:70px 0 54px}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);max-width:820px}
+.hero h1 span{color:var(--green)}
+.hero p.lead{font-size:1.1rem;margin-top:1rem}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.flow{position:relative;display:flex;justify-content:space-between;gap:10px;margin-top:44px;padding:26px 0 8px}
+.flow::before{content:"";position:absolute;left:5%;right:5%;top:50px;height:2px;background:linear-gradient(90deg,var(--line),var(--green),var(--line))}
+.flow .dot{position:absolute;top:44px;left:5%;width:14px;height:14px;border-radius:50%;background:var(--green);box-shadow:0 0 14px var(--green);animation:travel 5.5s linear infinite}
+.flow .dot:nth-of-type(2){animation-delay:-1.8s;background:var(--amber);box-shadow:0 0 14px var(--amber)}
+.flow .dot:nth-of-type(3){animation-delay:-3.6s;background:var(--blue);box-shadow:0 0 14px var(--blue)}
+@keyframes travel{from{left:5%;opacity:0}8%{opacity:1}92%{opacity:1}to{left:95%;opacity:0}}
+.node{position:relative;z-index:1;flex:1;text-align:center;font-size:.8rem;color:var(--muted)}
+.node i{display:grid;place-items:center;width:52px;height:52px;margin:0 auto 8px;background:var(--panel2);border:2px solid var(--line);border-radius:14px;font-style:normal;font-size:1.3rem;color:var(--text)}
+.node b{display:block;color:var(--text);font-size:.88rem}
+.scope{margin-top:26px;border:2px dashed #55627f;border-radius:14px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+.scope b{color:var(--amber)}
+
+/* pipeline */
+.stepper{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 12px}
+.stepper button{display:flex;align-items:center;gap:7px;padding:6px 11px;font-size:.82rem}
+.stepper button span{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--line);font:700 .7rem var(--mono)}
+.stepper button.done span{background:#1f6a4b}
+.stepper button.on span{background:var(--green);color:#04150e}
+.bar{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:14px}
+.bar i{display:block;height:100%;background:var(--green);transition:width .5s}
+.stage{min-height:340px;animation:fade .45s}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.ctrl{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.ctrl .sp{flex:1}
+.doc{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.doc .h{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px;font-size:.78rem;color:var(--muted)}
+.doc .h b{color:var(--text);font-family:var(--mono)}
+.doc .t{font-size:.92rem}
+.arrow{text-align:center;color:var(--green);font-size:1.3rem;line-height:1}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{flex:1;min-width:210px;border-radius:12px;padding:12px 14px;border:1px solid var(--line);background:var(--panel2)}
+.chip .v{font:700 1.5rem var(--mono)}
+.chip.a{border-color:#2c5a8c}.chip.b{border-color:#7a5520}.chip.x{border-color:#5d3f8c}
+.eq{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;font:700 2rem var(--mono);margin:16px 0}
+.eq small{display:block;font:500 .72rem system-ui;color:var(--muted);text-align:center}
+.eq .r{color:var(--green);font-size:2.6rem}
+.win{outline:2px solid var(--green)}
+
+/* lab */
+.lab label{display:block;font-size:.8rem;color:var(--muted);margin:8px 0 3px}
+.lab input,.lab textarea{width:100%;background:#0a1120;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:.85rem}
+.verdict{margin-top:12px;padding:10px 14px;border-radius:10px;font-weight:600;border:1px solid}
+.verdict.ok{background:#0f2a20;border-color:#1f6a4b;color:var(--green)}
+.verdict.no{background:#2b1414;border-color:#7a2f2f;color:var(--red)}
+
+/* priority */
+.rank{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.row{display:grid;grid-template-columns:70px minmax(150px,250px) 1fr 50px;gap:10px;align-items:center;font-size:.8rem}
+.row .n{font-family:var(--mono);color:var(--muted)}
+.row .lb{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .tr{background:#0a1120;border-radius:6px;height:20px;position:relative;overflow:hidden}
+.row .tr i{position:absolute;inset:0 auto 0 0;background:var(--blue);opacity:.85;border-radius:6px;transition:width .5s}
+.row.me .tr i{background:var(--green)}
+.row.me .lb{color:var(--green);font-weight:600}
+.row .s{text-align:right;font-family:var(--mono)}
+select,input[type=checkbox]{accent-color:var(--green)}
+select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 8px;margin-left:6px}
+.sliders{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.sliders label{font-size:.82rem;color:var(--muted);display:block}
+.sliders output{color:var(--text);font-family:var(--mono)}
+.sliders input[type=range]{width:100%;accent-color:var(--green)}
+
+/* triggers, resolve, search */
+.tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.cols{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.cols h4{margin:0 0 6px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.hit{border-radius:12px;padding:14px 16px;border:1px solid}
+.hit.warn{background:#2b1414;border-color:#7a2f2f}
+.hit.ver{background:#0f2a20;border-color:#1f6a4b}
+.hit b{display:block;margin-bottom:4px}
+.safe{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.safe .card b{color:var(--green)}
+footer{padding:36px 0 60px;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+@media (max-width:720px){.flow{flex-wrap:wrap}.flow::before,.flow .dot{display:none}.node{min-width:30%}.row{grid-template-columns:62px 1fr 44px}.row .tr{grid-column:1/-1;order:5}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<nav aria-label="Sections"><div class="wrap">
+  <b>KnowledgePulse</b>
+  <a href="#overview">Overview</a><a href="#pipeline">Pipeline</a><a href="#extraction">Extraction</a><a href="#priority">Priority</a>
+  <a href="#triggers">Triggers</a><a href="#resolve">Resolve</a><a href="#search">Search</a><a href="#safeguards">Safeguards</a><a href="#api">API</a>
+</div></nav>
+
+<header class="hero" id="overview"><div class="wrap">
+  <div class="kicker">Backend explained</div>
+  <h1>Two sources, two answers. <span>Which one is right?</span></h1>
+  <p class="lead">The KnowledgePulse backend reads raw documents, finds facts that contradict each other, ranks the contradictions by business impact, asks the right expert, and stores the verified answer with its provenance.</p>
+  <div class="badges">
+    <span class="tag amber">All data on this page is fictional (IKEA Belgium test documents)</span>
+    <span class="tag">Document excerpts stay in Dutch, as in the source files</span>
+    <span class="tag green">No server needed: every value comes from a real scan, saved statically</span>
+  </div>
+
+  <div class="flow" aria-hidden="true">
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    <div class="node"><i>▤</i><b>Raw files</b>delivered by another process</div>
+    <div class="node"><i>⚙</i><b>Sentinel</b>parse, extract, compare</div>
+    <div class="node"><i>⚡</i><b>Conflict</b>scored and routed</div>
+    <div class="node"><i>☎</i><b>Expert</b>asked at the right moment</div>
+    <div class="node"><i>✔</i><b>Verified answer</b>with provenance</div>
+  </div>
+
+  <div class="scope"><b>Out of scope for this entry:</b> collecting the data. We assume a separate connector/ETL process already delivers the raw exports, their original locations and the reference tables (client tiers, ticket volumes, expert history). The backend only reads those files and never modifies them.</div>
+</div></header>
+
+<section id="pipeline"><div class="wrap">
+  <div class="kicker">1 · The Sentinel pipeline</div>
+  <h2>From a file on disk to a scored conflict</h2>
+  <p class="lead">One worked example flows through every step: the bicycle allowance at IKEA Belgium. Three documents give three different amounts. Use the buttons, your arrow keys, or press play.</p>
+
+  <div class="stepper" id="stepper" role="tablist" aria-label="Pipeline steps"></div>
+  <div class="bar" aria-hidden="true"><i id="bar"></i></div>
+  <div class="card stage" id="stage" role="tabpanel" aria-live="polite"></div>
+  <div class="ctrl">
+    <button id="prev">← Previous</button>
+    <button id="next">Next →</button>
+    <button id="play" class="primary" aria-pressed="false">▶ Play</button>
+    <span class="sp"></span>
+    <span class="muted" id="count"></span>
+  </div>
+</div></section>
+
+<section id="extraction"><div class="wrap">
+  <div class="kicker">2 · Extraction</div>
+  <h2>Two extractors, one rule: prove it from the document</h2>
+  <p class="lead">Facts are found by regular expressions or by an LLM. The LLM only <em>reads</em> text. Whether values conflict, who the expert is and how urgent it is are decided by plain code.</p>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Regex <span class="tag green">deterministic · offline</span></h3>
+      <p class="muted">A pattern per source wording, stored in <code>detection_rules.json</code>. The offline demo fallback and what the tests run on.</p>
+      <pre>€\s*(?P&lt;value&gt;\d+,\d+) per (?:gereden )?kilometer</pre>
+    </div>
+    <div class="card">
+      <h3>LLM <span class="tag blue">flexible · needs a key</span></h3>
+      <p class="muted">Only a plain-English topic description is needed. Each document is read in parallel, up to 20,000 characters, at temperature 0.</p>
+      <pre>"The bicycle commuting allowance per kilometre in EUR
+ for IKEA Belgium employees ... Value is the amount per
+ km, e.g. 0,35."</pre>
+    </div>
+  </div>
+  <p class="muted" style="margin-top:14px"><code>extractor=auto</code> uses the LLM when a key is configured and falls back to regex per document if a call fails. <code>extractor=llm</code> is strict and reports the error instead.</p>
+
+  <div class="card lab" style="margin-top:14px">
+    <h3>Grounding lab: try to fool the checker</h3>
+    <p class="muted">Every fact from the LLM must come with a quote. The backend accepts it only if the quote exists verbatim in the document, contains the value, and the value parses. These are the same checks the backend runs.</p>
+    <div class="doc"><div class="h"><b>03_personeelshandboek.md</b><span>document text the model was given</span></div>
+      <div class="t" id="labDoc">Kom je met de fiets naar het werk? Dan ontvang je een fietsvergoeding van € 0,30 per kilometer. Meer details vind je in het mobiliteitsbeleid.</div></div>
+    <div class="tabs" style="margin-top:12px">
+      <button data-preset="0">A genuine fact</button><button data-preset="1">An invented quote</button><button data-preset="2">Value not in quote</button><button data-preset="3">Unknown topic</button>
+    </div>
+    <div class="cols">
+      <div><label for="labTopic">Topic (rule_id)</label><input id="labTopic" value="ikea_bicycle_allowance"></div>
+      <div><label for="labValue">Value the model returned</label><input id="labValue" value="0,30"></div>
+    </div>
+    <label for="labEv">Evidence quote the model returned</label>
+    <textarea id="labEv" rows="2">fietsvergoeding van € 0,30 per kilometer</textarea>
+    <div class="verdict" id="labOut" role="status"></div>
+  </div>
+</div></section>
+
+<section id="priority"><div class="wrap">
+  <div class="kicker">3 · Priority</div>
+  <h2>Which conflict gets attention first?</h2>
+  <p class="lead">Priority is <code>client tier × open tickets (48 h) × severity</code> with severity worth 10 (high), 6 (medium) or 3 (low). Move the sliders to see where a new conflict would land among the eleven found by the real scan.</p>
+  <div class="card">
+    <div class="sliders">
+      <label>Client tier <output id="oTier">3</output><input id="sTier" type="range" min="1" max="3" value="3"></label>
+      <label>Open tickets <output id="oTix">8</output><input id="sTix" type="range" min="0" max="20" value="8"></label>
+      <label>Severity <select id="sSev"><option value="10">HIGH (10)</option><option value="6" selected>MEDIUM (6)</option><option value="3">LOW (3)</option></select></label>
+    </div>
+    <div class="rank" id="rank" aria-label="Ranked conflicts"></div>
+    <p class="muted" style="margin-top:12px;margin-bottom:0" id="rankNote"></p>
+  </div>
+</div></section>
+
+<section id="triggers"><div class="wrap">
+  <div class="kicker">4 · Outreach triggers (API only)</div>
+  <h2>Ask the expert at a dead moment</h2>
+  <p class="lead">Two endpoints pick the top open conflict for an expert. There is no user interface here and no real telephony: a call is only queued and logged.</p>
+  <div class="tabs">
+    <button id="tCal" class="on">Meeting ended early</button>
+    <button id="tCom">Stuck in traffic on the commute</button>
+    <label id="comLabel" style="display:none;align-self:center"><input type="checkbox" id="commuting" checked> expert is commuting</label>
+  </div>
+  <div class="cols" id="trigOut"></div>
+</div></section>
+
+<section id="resolve"><div class="wrap">
+  <div class="kicker">5 · Resolve</div>
+  <h2>The expert answers, and the answer keeps its provenance</h2>
+  <p class="lead">Only the assigned expert may resolve a conflict. The result is a <code>VerifiedKnowledge</code> record: who, when, through which channel, and what it replaced. A resolved conflict is never reopened by a later scan.</p>
+  <div class="card">
+    <div class="tabs" id="choices" role="radiogroup" aria-label="Expert choice">
+      <button data-c="A" role="radio">Option A (handbook, € 0,30)</button>
+      <button data-c="B" role="radio" class="on">Option B (policy, € 0,35)</button>
+      <button data-c="CUSTOM" role="radio">Custom answer</button>
+      <span class="sp" style="flex:1"></span>
+      <button class="primary" id="doResolve">Expert confirms →</button>
+      <button id="doReset">Reset demo</button>
+    </div>
+    <div class="cols"><div><h4>Request</h4><pre id="rqOut"></pre></div><div><h4>Response</h4><pre id="rsOut"></pre></div></div>
+    <div class="grid g3" style="margin-top:14px">
+      <div class="card"><span class="tag red">403</span><p class="muted" style="margin:.4rem 0 0">The caller is not the assigned expert.</p></div>
+      <div class="card"><span class="tag amber">409</span><p class="muted" style="margin:.4rem 0 0">The conflict is already resolved.</p></div>
+      <div class="card"><span class="tag blue">422</span><p class="muted" style="margin:.4rem 0 0">Invalid body, for example a custom answer without text.</p></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="search"><div class="wrap">
+  <div class="kicker">6 · Search</div>
+  <h2>The same query, before and after verification</h2>
+  <p class="lead"><code>GET /api/search</code> matches on topic and client names. An open conflict returns a warning, a resolved one returns the verified answer with its trust details. Press "Expert confirms" in the section above and watch this change.</p>
+  <div class="card"><div class="mono" style="margin-bottom:10px">GET /api/search?q=IKEA bicycle allowance</div><div id="searchOut" aria-live="polite"></div></div>
+</div></section>
+
+<section id="safeguards"><div class="wrap">
+  <div class="kicker">7 · Safeguards</div>
+  <h2>What keeps the process trustworthy</h2>
+  <div class="safe">
+    <div class="card"><b>Grounded facts</b><p class="muted">An LLM fact without a verbatim quote in the source is rejected and counted.</p></div>
+    <div class="card"><b>Model never decides</b><p class="muted">Comparison, routing and scoring are deterministic code. The model only reads.</p></div>
+    <div class="card"><b>Untrusted documents</b><p class="muted">The prompt marks every document as data and tells the model to ignore instructions inside it.</p></div>
+    <div class="card"><b>Real excerpts</b><p class="muted">The text shown to the expert is taken from the real file, never written by the model.</p></div>
+    <div class="card"><b>Sources stay untouched</b><p class="muted">The backend only reads the delivered files. Each conflict keeps the original location of its sources.</p></div>
+    <div class="card"><b>Secrets stay local</b><p class="muted">The API key lives in a git-ignored <code>.env</code> and is never logged or returned.</p></div>
+    <div class="card"><b>Resilient scan</b><p class="muted">A missing or malformed file is reported and does not stop the scan. Re-scans are idempotent.</p></div>
+    <div class="card"><b>Honest limits</b><p class="muted">In-memory state, simulated expert identity, no real telephony. Context such as country or date range is left to the expert.</p></div>
+  </div>
+</div></section>
+
+<section id="api"><div class="wrap">
+  <div class="kicker">8 · API map</div>
+  <h2>Endpoints</h2>
+  <div class="card scroll"><table>
+    <thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">POST</td><td class="mono">/api/sentinel/scan?extractor=auto|llm|regex</td><td>Run the pipeline over the raw files. Returns a report with a readable <code>steps</code> log</td></tr>
+      <tr><td class="mono">GET</td><td class="mono">/api/sentinel/last-scan</td><td>The most recent scan report</td></tr>
+      <tr><td class="mono">GET</td><td class="mono">/api/conflicts/pending?sme_id=</td><td>Open conflicts, highest priority first, optionally for one expert</td></tr>
+      <tr><td class="mono">GET</td><td class="mono">/api/conflicts/{id}</td><td>One conflict with its sources and <code>additional_sources</code></td></tr>
+      <tr><td class="mono">POST</td><td class="mono">/api/calendar/trigger-early-finish</td><td>Dead-moment trigger: meeting ended early</td></tr>
+      <tr><td class="mono">POST</td><td class="mono">/api/commute/trigger-traffic-call</td><td>Dead-moment trigger: queue a call while commuting</td></tr>
+      <tr><td class="mono">GET</td><td class="mono">/api/outreach</td><td>Log of queued calls</td></tr>
+      <tr><td class="mono">POST</td><td class="mono">/api/conflicts/resolve</td><td>Expert answer, stored as verified knowledge</td></tr>
+      <tr><td class="mono">GET</td><td class="mono">/api/knowledge</td><td>All verified answers</td></tr>
+      <tr><td class="mono">GET</td><td class="mono">/api/search?q=</td><td>Conflict warnings and verified answers</td></tr>
+      <tr><td class="mono">GET</td><td class="mono">/api/smes</td><td>Experts</td></tr>
+      <tr><td class="mono">POST</td><td class="mono">/api/demo/reset?seed_conflicts=</td><td>Back to a known state</td></tr>
+      <tr><td class="mono">GET</td><td class="mono">/api/health</td><td>Liveness</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted" style="margin-top:12px">Full contract: <code>/docs</code> on the running backend, plus <code>backend/README.md</code> and <code>backend/docs/data-extraction.md</code> in the repository.</p>
+</div></section>
+
+<footer><div class="wrap">KnowledgePulse Sentinel · backend explainer · all names, amounts and documents are fictional test data. Values shown were produced by a real regex scan of <code>data/raw</code>.</div></footer>
+
+<script>
+"use strict";
+/* ---------- data captured from a real scan (regex extractor) ---------- */
+const EUR = "€";
+const DOCS = [
+  { id:"src_103", file:"03_personeelshandboek.md", system:"SharePoint", type:"Employee Handbook", team:"HR Communications", uri:"sharepoint://ikea/hr/03_personeelshandboek.md",
+    raw:"Kom je met de fiets naar het werk? Dan ontvang je een fietsvergoeding van **€ 0,30 per kilometer**. Meer details vind je in het mobiliteitsbeleid.",
+    parsed:"Kom je met de fiets naar het werk? Dan ontvang je een fietsvergoeding van € 0,30 per kilometer. Meer details vind je in het mobiliteitsbeleid.",
+    excerpt:"Dan ontvang je een fietsvergoeding van € 0,30 per kilometer.", value:"0,30", norm:"0.3" },
+  { id:"src_105", file:"05_mobiliteitsbeleid.md", system:"Confluence", type:"Policy Page", team:"Mobility & Facilities", uri:"confluence://ikea/mobility/05_mobiliteitsbeleid.md",
+    raw:"- Vergoeding: **€ 0,35 per gereden kilometer** (heen en terug)",
+    parsed:"- Vergoeding: € 0,35 per gereden kilometer (heen en terug)",
+    excerpt:"€ 0,35 per gereden kilometer (heen en terug)", value:"0,35", norm:"0.35" },
+  { id:"src_110", file:"10_loonbrief_maart_2026.md", system:"SD Worx Payroll", type:"Payslip", team:"Payroll Operations", uri:"sdworx://ikea/payroll/10_loonbrief_maart_2026.md",
+    raw:"| 2010 | Fietsvergoeding | 440 km | € 0,27 | € 118,80 |",
+    parsed:"| 2010 | Fietsvergoeding | 440 km | € 0,27 | € 118,80 |",
+    excerpt:"Loonbrief maart 2026: fietsvergoeding uitbetaald aan € 0,27 per km.", value:"0,27", norm:"0.27" }
+];
+/* all 11 conflicts of a full regex scan over data/raw: [id, score, client, topic] */
+const SCAN = [
+  ["conf_101",420,"Volvo Group","PC 200 Overtime"],["conf_106",144,"IKEA Belgium","Bicycle allowance"],["conf_105",132,"GreenMotion","Night shift vouchers"],
+  ["conf_110",126,"IKEA Belgium","ADV days"],["conf_102",108,"Atlas Logistics","Expense SLA"],["conf_107",90,"IKEA Belgium","Sunday premium"],
+  ["conf_108",72,"IKEA Belgium","Year-end bonus"],["conf_103",60,"AeroPulse","On-call France"],["conf_109",54,"IKEA Belgium","Meal voucher value"],
+  ["conf_111",54,"IKEA Belgium","Telework allowance"],["conf_104",9,"NovaRetail","Holiday carry-over"]
+];
+const SME = { id:"user_88", name:"Tom Claes", role:"Benefits Program Owner" };
+const OPT_A = "Dan ontvang je een fietsvergoeding van € 0,30 per kilometer.";
+const OPT_B = "€ 0,35 per gereden kilometer (heen en terug)";
+
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const hi = (text, v) => esc(text).replace(esc(v), m => "<mark>"+m+"</mark>");
+const json = o => esc(JSON.stringify(o, null, 2));
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- 1. pipeline stepper ---------- */
+const docHead = d => `<div class="h"><b>${esc(d.file)}</b><span>${esc(d.system)} · ${esc(d.type)}</span></div>`;
+const STEPS = [
+ { name:"Catalog", title:"Start from the registered sources",
+   text:"<code>source_catalog.seed.json</code> lists every raw file with its system, owning team and original location. This is the provenance shown to the expert later. The catalog holds 20 files; three are shown.",
+   html:() => `<div class="scroll"><table><thead><tr><th>source_id</th><th>System</th><th>Type</th><th>Owner team</th><th>Original location (uri)</th></tr></thead><tbody>${DOCS.map(d=>`<tr><td class="mono">${d.id}</td><td>${esc(d.system)}</td><td>${esc(d.type)}</td><td>${esc(d.team)}</td><td class="mono">${esc(d.uri)}</td></tr>`).join("")}</tbody></table></div>` },
+ { name:"Parse", title:"Turn every format into plain lines of text",
+   text:"HTML, JSON, Markdown, e-mail, CSV, subtitles and text all become one logical unit per line. Here Markdown loses its bold markers.",
+   html:() => DOCS.map(d=>`<div class="doc" style="margin-bottom:10px">${docHead(d)}<div class="mono" style="font-size:.78rem;color:var(--muted)">raw</div><div class="t mono" style="font-size:.82rem">${esc(d.raw)}</div><div class="arrow">↓</div><div class="mono" style="font-size:.78rem;color:var(--muted)">parsed line</div><div class="t">${esc(d.parsed)}</div></div>`).join("") },
+ { name:"Extract", title:"Find the stated value for the topic",
+   text:"The regex rule for <em>IKEA Bicycle Allowance per km</em> matches all three documents. An LLM would return the same facts together with a quote.",
+   html:() => DOCS.map(d=>`<div class="doc" style="margin-bottom:10px">${docHead(d)}<div class="t">${hi(d.parsed,"€ "+d.value)}</div></div>`).join("") + `<p class="muted" style="margin:.6rem 0 0">Pattern: <code>€\\s*(?P&lt;value&gt;\\d+,\\d+) per (?:gereden )?kilometer</code> (the payslip row has its own table pattern).</p>` },
+ { name:"Ground", title:"Prove every fact from the document",
+   text:"Only for the LLM extractor: each fact needs a quote that exists verbatim in the document and contains the value. Regex facts come straight from the text, so they are grounded by construction. Try to break it in the grounding lab below.",
+   html:() => DOCS.map(d=>`<div class="doc" style="margin-bottom:10px">${docHead(d)}<div class="t">“${hi(d.excerpt,d.value)}”</div><div style="margin-top:6px"><span class="tag green">quote found in document</span> <span class="tag green">value inside quote</span> <span class="tag green">value parses</span></div></div>`).join("") + `<div class="doc" style="border-color:#7a2f2f"><div class="t">“…fietsvergoeding van € 0,40 per kilometer”</div><div style="margin-top:6px"><span class="tag red">rejected: evidence not found in document</span></div></div>` },
+ { name:"Normalize", title:"Make values comparable",
+   text:"A decimal comma becomes a decimal point, so “0,35” and “0.35” are the same value. Dates and times have their own normalizers.",
+   html:() => `<div class="scroll"><table><thead><tr><th>Document</th><th>As written</th><th></th><th>Normalized</th></tr></thead><tbody>${DOCS.map(d=>`<tr><td class="mono">${esc(d.file)}</td><td class="mono">${EUR} ${d.value}</td><td>→</td><td class="mono"><mark>${d.norm}</mark></td></tr>`).join("")}</tbody></table></div>` },
+ { name:"Compare", title:"Three distinct values: a conflict",
+   text:"Facts are grouped by normalized value, in catalog order. One value means consistent. Two or more means conflict. The first two become Source A and Source B and any more go into <code>additional_sources</code>. Two values can even come from the same document.",
+   html:() => `<div class="chips"><div class="chip a"><span class="tag blue">source_a</span><div class="v">${EUR} 0,30</div><div class="muted">${esc(DOCS[0].file)}</div></div><div class="chip b"><span class="tag amber">source_b</span><div class="v">${EUR} 0,35</div><div class="muted">${esc(DOCS[1].file)}</div></div><div class="chip x"><span class="tag" style="color:var(--violet)">additional_sources</span><div class="v">${EUR} 0,27</div><div class="muted">${esc(DOCS[2].file)}</div></div></div>` },
+ { name:"Enrich", title:"Add the business context",
+   text:"Three reference tables, delivered by other systems, tell how much this conflict matters.",
+   html:() => `<div class="grid g3"><div class="card"><span class="tag">client_tiers.csv</span><h3 style="margin-top:8px">Client tier 3</h3><p class="muted" style="margin:0">IKEA Belgium, Enterprise Tier 1</p></div><div class="card"><span class="tag">ticket_volume_48h.csv</span><h3 style="margin-top:8px">8 open tickets</h3><p class="muted" style="margin:0">waiting on this topic in the last 48 hours</p></div><div class="card"><span class="tag">detection_rules.json</span><h3 style="margin-top:8px">Severity MEDIUM</h3><p class="muted" style="margin:0">worth 6 points</p></div></div>` },
+ { name:"Route", title:"Pick the expert who has answered this most",
+   text:"The expert with the most answered questions on the topic in the last 12 months wins. A tie goes to the most recent answer.",
+   html:() => `<div class="scroll"><table><thead><tr><th>Expert</th><th>Role</th><th>Answered (12 m)</th><th>Last answered</th><th></th></tr></thead><tbody><tr class="win"><td>Tom Claes <span class="muted mono">user_88</span></td><td>Benefits Program Owner</td><td class="mono">6</td><td class="mono">2026-09-14</td><td><span class="tag green">assigned</span></td></tr><tr><td>Nina Verhaegen <span class="muted mono">user_81</span></td><td>Finance Process Manager</td><td class="mono">1</td><td class="mono">2026-04-10</td><td></td></tr></tbody></table></div><p class="muted" style="margin:.6rem 0 0">Source: <code>topic_ownership_history.csv</code></p>` },
+ { name:"Score", title:"Compute the priority",
+   text:"Client tier times open tickets times severity points.",
+   html:() => `<div class="eq"><div>3<small>tier</small></div><div>×</div><div>8<small>tickets</small></div><div>×</div><div>6<small>severity</small></div><div>=</div><div class="r">144<small>priority</small></div></div><p class="muted" style="text-align:center;margin:0">Below the Volvo overtime conflict (420), so the default demo case stays on top.</p>` },
+ { name:"Store", title:"Save it, and never reopen a resolved one",
+   text:"The conflict is upserted into the store. Re-scanning updates open conflicts in place, but a conflict that is already resolved is left alone.",
+   html:() => `<pre>${json({ id:"conf_106", topic:"IKEA Bicycle Allowance per km", client_context:"IKEA Belgium", client_tier:3, active_tickets_count:8, conflict_severity:"MEDIUM", priority_score:144,
+      source_a:{ title:DOCS[0].file, excerpt:DOCS[0].excerpt }, source_b:{ title:DOCS[1].file, excerpt:DOCS[1].excerpt },
+      additional_sources:[{ title:DOCS[2].file, excerpt:DOCS[2].excerpt }], assigned_sme:SME, status:"OPEN" })}</pre>` }
+];
+let cur = 0, timer = null;
+const stepper = $("#stepper");
+stepper.innerHTML = STEPS.map((s,i)=>`<button role="tab" data-i="${i}"><span>${i+1}</span>${s.name}</button>`).join("");
+function show(i){
+  cur = Math.max(0, Math.min(STEPS.length-1, i));
+  const s = STEPS[cur];
+  $("#stage").innerHTML = `<span class="tag green">Step ${cur+1} of ${STEPS.length}</span><h3 style="margin:8px 0 4px;font-size:1.3rem">${s.title}</h3><p class="muted">${s.text}</p>${s.html()}`;
+  [...stepper.children].forEach((b,k)=>{ b.classList.toggle("on",k===cur); b.classList.toggle("done",k<cur); b.setAttribute("aria-selected",k===cur); });
+  $("#bar").style.width = ((cur+1)/STEPS.length*100)+"%";
+  $("#count").textContent = s.name;
+  $("#prev").disabled = cur===0; $("#next").disabled = cur===STEPS.length-1;
+}
+function stop(){ clearInterval(timer); timer=null; const p=$("#play"); p.textContent="▶ Play"; p.setAttribute("aria-pressed","false"); }
+function play(){
+  if(timer){ stop(); return; }
+  if(cur===STEPS.length-1) show(0);
+  const p=$("#play"); p.textContent="❚❚ Pause"; p.setAttribute("aria-pressed","true");
+  timer = setInterval(()=>{ if(cur>=STEPS.length-1){ stop(); } else show(cur+1); }, 4200);
+}
+stepper.addEventListener("click", e=>{ const b=e.target.closest("button"); if(b){ stop(); show(+b.dataset.i); }});
+$("#prev").onclick = ()=>{ stop(); show(cur-1); };
+$("#next").onclick = ()=>{ stop(); show(cur+1); };
+$("#play").onclick = play;
+$("#pipeline").addEventListener("keydown", e=>{
+  if(e.target.closest("input,textarea,select")) return;
+  if(e.key==="ArrowRight"){ stop(); show(cur+1); } else if(e.key==="ArrowLeft"){ stop(); show(cur-1); }
+});
+show(0);
+
+/* ---------- 2. grounding lab (same checks as backend ground_llm_facts) ---------- */
+const PRESETS = [
+  { topic:"ikea_bicycle_allowance", value:"0,30", ev:"fietsvergoeding van € 0,30 per kilometer" },
+  { topic:"ikea_bicycle_allowance", value:"0,40", ev:"fietsvergoeding van € 0,40 per kilometer" },
+  { topic:"ikea_bicycle_allowance", value:"0,35", ev:"fietsvergoeding van € 0,30 per kilometer" },
+  { topic:"ikea_parking_fee",       value:"0,30", ev:"fietsvergoeding van € 0,30 per kilometer" }
+];
+const KNOWN_RULES = ["ikea_bicycle_allowance","ikea_sunday_premium","ikea_bonus_tenure","ikea_meal_voucher_value","ikea_adv_days","ikea_telework_allowance"];
+function ground(){
+  const doc = $("#labDoc").textContent.toLowerCase().replace(/\s+/g," ");
+  const topic = $("#labTopic").value.trim(), value = $("#labValue").value.trim();
+  const ev = $("#labEv").value.trim().replace(/\s+/g," ");
+  let reason = null;
+  if(!KNOWN_RULES.includes(topic)) reason = "unknown rule_id";
+  else if(!value || !ev) reason = "missing value or evidence";
+  else if(!doc.includes(ev.toLowerCase())) reason = "evidence not found in document";
+  else if(!ev.toLowerCase().includes(value.toLowerCase())) reason = "value not in evidence";
+  else if(!/\d+(?:[.,]\d+)?/.test(value)) reason = "value not parseable";
+  const out = $("#labOut");
+  if(reason){ out.className="verdict no"; out.textContent = "Rejected: "+reason+". This fact is dropped and counted in rejected_facts."; }
+  else { out.className="verdict ok"; out.textContent = "Accepted. The excerpt shown to the expert is recomputed from the real document, not taken from the model."; }
+}
+function preset(i){ const p=PRESETS[i]; $("#labTopic").value=p.topic; $("#labValue").value=p.value; $("#labEv").value=p.ev; ground(); }
+document.querySelectorAll("[data-preset]").forEach(b=>b.onclick=()=>preset(+b.dataset.preset));
+["#labTopic","#labValue","#labEv"].forEach(s=>$(s).addEventListener("input",ground));
+ground();
+
+/* ---------- 3. priority what-if ---------- */
+const SEV_NAME = { 10:"HIGH", 6:"MEDIUM", 3:"LOW" };
+function drawRank(){
+  const tier=+$("#sTier").value, tix=+$("#sTix").value, sev=+$("#sSev").value, me=tier*tix*sev;
+  $("#oTier").textContent=tier; $("#oTix").textContent=tix;
+  const rows = SCAN.map(r=>({id:r[0],s:r[1],label:r[2]+" · "+r[3],me:false})).concat([{id:"what-if",s:me,label:"Your conflict ("+tier+" × "+tix+" × "+SEV_NAME[sev]+")",me:true}]).sort((a,b)=>b.s-a.s||(a.me?-1:1));
+  const max = Math.max(...rows.map(r=>r.s),1);
+  $("#rank").innerHTML = rows.map(r=>`<div class="row ${r.me?"me":""}"><span class="n">${r.id}</span><span class="lb" title="${esc(r.label)}">${esc(r.label)}</span><span class="tr"><i style="width:${Math.max(r.s/max*100,1.5)}%"></i></span><span class="s">${r.s}</span></div>`).join("");
+  const pos = rows.findIndex(r=>r.me)+1;
+  $("#rankNote").textContent = `Your conflict scores ${me} and would rank ${pos} of ${rows.length}.`+(pos===1?" It would become the top question.":"");
+}
+["#sTier","#sTix","#sSev"].forEach(s=>$(s).addEventListener("input",drawRank));
+drawRank();
+
+/* ---------- 4. triggers ---------- */
+let trig = "cal";
+function drawTrig(){
+  const commuting = $("#commuting").checked;
+  $("#comLabel").style.display = trig==="com" ? "inline-flex" : "none";
+  $("#tCal").classList.toggle("on", trig==="cal"); $("#tCom").classList.toggle("on", trig==="com");
+  let req, res, note;
+  if(trig==="cal"){
+    req = "POST /api/calendar/trigger-early-finish\n" + JSON.stringify({ sme_id:"user_88" }, null, 2);
+    res = { event_type:"EVENT_EARLY_FINISH", triggered:true, headline:"Meeting Finished Early! (20 min gap)", context_anchor:"Unblock 8 tickets for IKEA Belgium: IKEA Bicycle Allowance per km", sme:SME, conflict:"… the top open conflict for this expert (conf_106)" };
+    note = "Picks the highest-priority open conflict for the expert and returns a headline plus the context that makes the question urgent.";
+  } else if(commuting){
+    req = "POST /api/commute/trigger-traffic-call\n" + JSON.stringify({ sme_id:"user_88", traffic_context:{ commuting:true, traffic_level:"high" } }, null, 2);
+    res = { outreach_id:"out_c2eb38d7", event_type:"EVENT_COMMUTE_TRAFFIC", triggered:true, channel:"phone", status:"CALL_QUEUED", sme:SME, phone_masked:"+32***788",
+      call_script:"Hi Tom, this is KnowledgePulse. I have one quick question about IKEA Bicycle Allowance per km for IKEA Belgium; 8 support tickets are waiting on it. Option A: "+OPT_A+" Option B: "+OPT_B+" Please say 'option A' or 'option B'.",
+      voice_options:[{option:"A",utterance:OPT_A},{option:"B",utterance:OPT_B}], fallback_text_link:"http://localhost:5173/nudge/conf_106" };
+    note = "Builds a spoken script with two answerable options and logs it in /api/outreach. No phone call is actually placed.";
+  } else {
+    req = "POST /api/commute/trigger-traffic-call\n" + JSON.stringify({ sme_id:"user_88", traffic_context:{ commuting:false } }, null, 2);
+    res = { outreach_id:null, event_type:"EVENT_COMMUTE_TRAFFIC", triggered:false, reason:"SME is not commuting", channel:"phone", status:null, sme:SME, phone_masked:null, call_script:null, voice_options:[], fallback_text_link:null, conflict:null };
+    note = "Not commuting: nothing is queued and the response says why.";
+  }
+  $("#trigOut").innerHTML = `<div><h4>Request</h4><pre>${esc(req)}</pre><p class="muted" style="margin-top:10px">${note}</p></div><div><h4>Response</h4><pre>${json(res)}</pre></div>`;
+}
+$("#tCal").onclick=()=>{trig="cal";drawTrig();}; $("#tCom").onclick=()=>{trig="com";drawTrig();}; $("#commuting").onchange=drawTrig;
+drawTrig();
+
+/* ---------- 5. resolve + 6. search (shared state) ---------- */
+let choice = "B", resolved = null;
+function resolvePayload(){
+  const body = { conflict_id:"conf_106", sme_id:"user_88", choice, explanation:"Mobility policy applies from 1 January 2026.", scope:"IKEA Belgium, all stores" };
+  if(choice==="CUSTOM") body.answer = "€ 0,35 per km up to 20 km one way";
+  return body;
+}
+function record(){
+  const answer = choice==="A" ? OPT_A : choice==="B" ? OPT_B : "€ 0,35 per km up to 20 km one way";
+  const replaced = choice==="A" ? DOCS[1] : DOCS[0];
+  return { id:"fact_501", topic:"IKEA Bicycle Allowance per km", client_context:"IKEA Belgium", verified_answer:answer, explanation:"Mobility policy applies from 1 January 2026.", scope:"IKEA Belgium, all stores",
+    status:"VERIFIED", verified_by:"Tom Claes (Benefits Program Owner)", verified_at:"2026-09-30T19:39:47Z", verification_source:"Early-Finish Micro-Sync",
+    trust_score: choice==="CUSTOM" ? 0.92 : 0.98, resolved_conflict_id:"conf_106",
+    archived_conflict_note: choice==="CUSTOM"
+      ? "Overrode both ["+DOCS[0].type+"] "+DOCS[0].file+" and ["+DOCS[1].type+"] "+DOCS[1].file+" with a custom answer"
+      : "Overrode ["+replaced.type+"] "+replaced.file+': "'+replaced.excerpt+'"' };
+}
+function drawResolve(){
+  document.querySelectorAll("#choices [data-c]").forEach(b=>{ const on=b.dataset.c===choice; b.classList.toggle("on",on); b.setAttribute("aria-checked",on); });
+  $("#rqOut").textContent = "POST /api/conflicts/resolve\n" + JSON.stringify(resolvePayload(), null, 2);
+  $("#rsOut").innerHTML = resolved ? json(resolved) : '<span class="muted">Press "Expert confirms" to send the request.</span>';
+  drawSearch();
+}
+function drawSearch(){
+  $("#searchOut").innerHTML = resolved
+    ? `<div class="hit ver"><span class="tag green">VERIFIED</span><b style="margin-top:8px">${esc(resolved.topic)} · ${esc(resolved.client_context)}</b>${esc(resolved.verified_answer)}<div class="muted" style="margin-top:8px;font-size:.85rem">Verified by ${esc(resolved.verified_by)} · trust score ${resolved.trust_score}</div></div>`
+    : `<div class="hit warn"><span class="tag red">CONFLICT_WARNING</span><b style="margin-top:8px">IKEA Bicycle Allowance per km · IKEA Belgium</b>Ambiguity warning: sources disagree on this topic. Do not act until verified by the SME.</div>`;
+}
+$("#choices").addEventListener("click", e=>{ const b=e.target.closest("[data-c]"); if(b){ choice=b.dataset.c; resolved=null; drawResolve(); }});
+$("#doResolve").onclick = ()=>{ resolved = record(); drawResolve(); };
+$("#doReset").onclick = ()=>{ resolved = null; drawResolve(); };
+drawResolve();
+</script>
+</body>
+</html>
