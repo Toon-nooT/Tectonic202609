@@ -2,6 +2,8 @@
 
 FastAPI backend for the KnowledgePulse Sentinel PoC. It is an in-memory, single-process service and acts as the **consumer API** for the (separately developed) frontend.
 
+**Scope:** the backend does not collect data. It assumes another process (connectors/ETL) has already delivered raw exports to `data/raw/` and registered them in the source catalog. See [docs/data-extraction.md](docs/data-extraction.md) for the input contract and a detailed explanation of how extraction works.
+
 ## Run
 
 ```sh

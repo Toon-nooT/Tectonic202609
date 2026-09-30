@@ -18,6 +18,16 @@ In large organizations like SD Worx, employees face conflicting, stale, or conte
 4. **Triggers** 1-2 targeted micro-questions to the SME during "dead moments" (e.g., when a meeting finishes 20 minutes early).
 5. **Updates** the knowledge base with verifiable human provenance (`Verified by Marc (Senior Lead) at 14:41 today`).
 
+### 1.1 Scope of this hackathon entry
+
+**In scope:** everything from the moment raw exports exist: parsing, fact extraction (regex or LLM with grounding), conflict detection, prioritization, expert routing, the two dead-moment triggers (early finish, commute call), expert verification with provenance, and trust-badged search.
+
+**Out of scope, assumed done by another process:** *collecting* the data. We expect a separate connector/ETL (for example Microsoft Graph for SharePoint, Teams and Exchange, the ServiceNow API, SD Worx HR and payroll exports) to deliver raw files and their provenance to `data/raw/` and the source catalog, and CRM, ticketing and HR systems to supply the client tiers, ticket volumes and expert history. In this PoC those deliveries are simulated by files on disk. The sentinel never connects to a source system and never modifies a source file.
+
+Also not in scope: real telephony or voice provider (calls are queued and logged), authentication, and persistence across restarts.
+
+Details and the exact input contract: [backend/docs/data-extraction.md](backend/docs/data-extraction.md).
+
 ---
 
 ## 2. System Architecture & Component Flow
@@ -25,6 +35,8 @@ In large organizations like SD Worx, employees face conflicting, stale, or conte
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                            BACKGROUND SERVICES                              │
+│                 (input: raw exports delivered by a separate                 │
+│                  collection process, out of scope for this PoC)             │
 │                                                                             │
 │  ┌───────────────────────┐    ┌──────────────────────┐    ┌──────────────┐  │
 │  │ Collision Detector    │ -> │ Business Priority    │ -> │ SME Router   │  │
@@ -216,7 +228,7 @@ Suggested consumer API payload for future frontend/mobile:
 
 | Area | Status | Notes |
 |---|---|---|
-| Seed + raw data (`data/`) | Done | 10 raw files in 7 formats across 8 source systems, plus reference CSVs |
+| Seed + raw data (`data/`) | Done | 20 raw files in 7 formats across 9 source folders (10 original, 10 fictional IKEA documents), plus reference CSVs. Stands in for the out-of-scope collection process (see 1.1) |
 | Collision Sentinel (ingest, extract, compare, route) | Done | `POST /api/sentinel/scan?extractor=auto\|llm\|regex`, scan log in `steps[]`. LLM extraction (OpenRouter) verified live on all 10 raw files with grounding checks; regex kept as offline fallback |
 | Priority scorer | Done | `tier x tickets x severity` |
 | Trigger 1: early finish | Done | `POST /api/calendar/trigger-early-finish` |
