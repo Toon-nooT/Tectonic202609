@@ -39,6 +39,9 @@ In large organizations like SD Worx, employees face conflicting, stale, or conte
 │  ┌───────────────────────────────────────────────────────────────────────┐  │
 │  │ Calendar Monitor: Detects early meeting end / 15-min gap              │  │
 │  └───────────────────────────────────┬───────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ Commute Traffic Monitor: Detects traffic-bound commute windows         │  │
+│  └───────────────────────────────────┬───────────────────────────────────┘  │
 └──────────────────────────────────────┼──────────────────────────────────────┘
                                        │
                                        ▼
@@ -78,15 +81,25 @@ In large organizations like SD Worx, employees face conflicting, stale, or conte
 ### 3.3 SME Router & Calendar Monitor
 * Maps the conflict to an SME based on topic ownership history.
 * Listens for a simulated calendar trigger: `EVENT_EARLY_FINISH` (e.g., 20 minutes remaining in a slot).
+* Supports a second simulated trigger: `EVENT_COMMUTE_TRAFFIC` (SME is commuting and currently in traffic).
 * Fetches **only the single highest-priority question** for that SME.
 
-### 3.4 Micro-Verification Nudge UI
+### 3.4 Multi-Channel Outreach Triggering
+* Trigger Channel A: In-app/Teams micro-nudge when `EVENT_EARLY_FINISH` is received.
+* Trigger Channel B: Phone outreach workflow when `EVENT_COMMUTE_TRAFFIC` is received.
+* For phone mode, generate a concise script with:
+  * Conflict topic and client urgency context.
+  * A/B options plus a short "say yes/no or option A/B" prompt.
+  * Fallback to text link when call is not answered.
+* This channel is exposed as a **consumer API contract** for a future frontend/mobile client.
+
+### 3.5 Micro-Verification Nudge UI
 * Non-intrusive modal or card component with:
   * Context anchor: *"Unblock 12 tickets for Volvo Group"*.
   * Clear comparison between Source A (Doc) and Source B (Teams Chat).
   * 1-click decision buttons (Option A, Option B, or Custom voice/text input).
 
-### 3.5 Provenance & Front-End Trust Display
+### 3.6 Provenance & Front-End Trust Display
 * When an answer is submitted, the system flags the conflict as `RESOLVED`.
 * Search results display the answer alongside a **Trust Scorecard**:
   * Badge: `Verified`
@@ -162,7 +175,22 @@ In large organizations like SD Worx, employees face conflicting, stale, or conte
 ### Phase 2: Priority Scorer & Backend APIs (1 - 2h)
 1. Implement endpoint `GET /api/conflicts/pending` sorted by `priority_score` descending.
 2. Implement endpoint `POST /api/calendar/trigger-early-finish` that triggers a pop-up state for the assigned SME.
-3. Implement endpoint `POST /api/conflicts/resolve` to persist SME choices and update metadata.
+3. Implement endpoint `POST /api/commute/trigger-traffic-call` to initiate phone outreach flow for the assigned SME.
+4. Implement endpoint `POST /api/conflicts/resolve` to persist SME choices and update metadata.
+
+Suggested consumer API payload for future frontend/mobile:
+```json
+{
+  "event_type": "EVENT_COMMUTE_TRAFFIC",
+  "sme_id": "user_77",
+  "conflict_id": "conf_101",
+  "contact_channel": "phone",
+  "traffic_context": {
+    "commuting": true,
+    "traffic_level": "high"
+  }
+}
+```
 
 ### Phase 3: SME Micro-Nudge Interface (1.5 - 2h)
 1. Build a banner or pop-up component titled **"Meeting Finished Early! (20 min gap)"**.
@@ -177,6 +205,12 @@ In large organizations like SD Worx, employees face conflicting, stale, or conte
 ### Phase 5: Demo Integration & Polish (1h)
 1. Add a **"Simulate 24/7 Sentinel Scan"** button to live-generate new conflicts on demand.
 2. Add a **"Simulate Meeting Ended 20 Min Early"** quick-trigger button in the UI toolbar for easy live presentation.
+3. Add a **"Simulate Commute Traffic (Phone Trigger)"** quick-trigger button to demonstrate the second trigger path.
+
+### Phase 6 (Optional Stretch): Video Agent Frontend Extension
+1. If time allows, integrate an **ElevenLabs video agent** in the frontend as a guided assistant layer.
+2. Use it to present conflict context, read out A/B options, and capture the SME choice in a conversational format.
+3. Keep this optional and non-blocking: core PoC value remains collision detection, prioritization, and verified resolution flow.
 
 ---
 
