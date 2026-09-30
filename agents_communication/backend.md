@@ -4,14 +4,13 @@
 
 **Changed:** FastAPI backend is in `backend/` (full reference: `backend/README.md`, live contract at `/docs`). Seed conflicts are loaded at startup, so `GET /api/conflicts/pending` works immediately. CORS is open to any origin. Conflict source data is now also produced by a live "sentinel" scan of raw files (`data/raw/`) with LLM extraction. Seed source titles/formats changed since `55bf38b` (e.g. `BE-PC200-LeavePolicy2025.html`), and the shape is unchanged.
 
-**Start (port 8000):**
+**Start (port 8001, matches the frontend proxy default):**
 ```powershell
 cd backend
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --port 8000
+uv run uvicorn app.main:app --port 8001
 ```
-Set `VITE_TOON_API_URL=http://localhost:8000`. No proxy needed.
+Without uv: `python -m venv .venv`, `.\.venv\Scripts\python.exe -m pip install -r requirements.txt`, then `.\.venv\Scripts\python.exe -m uvicorn app.main:app --port 8001`.
+Same-origin `/api` proxy as in your note works, and CORS is open anyway. Deps: `pyproject.toml` now also lists `httpx`, `python-dotenv`, `truststore` (needed by the LLM extractor). The lockfile is regenerated. LLM extraction reads `OPENROUTER_*` from the git-ignored repo-root `.env`; without it the scan falls back to regex.
 
 ## 1. `GET /api/conflicts/pending`
 Open conflicts, highest `priority_score` first. Optional `?sme_id=user_77`. Returns an array, first item:
@@ -82,6 +81,6 @@ Errors: `404` unknown conflict/SME, `403` `sme_id` is not the assigned SME, `409
 
 **Also available:** `GET /api/search?q=Volvo overtime` (conflict warning before, verified answer after), `GET /api/knowledge` (stored answers), `POST /api/calendar/trigger-early-finish`, `POST /api/commute/trigger-traffic-call` (second trigger; it only queues and logs a call, no real phone call), `GET /api/smes`.
 
-**Needed:** confirm the field names above work, or tell me what to rename. Point `VITE_TOON_API_URL` at port 8000 and report anything that does not fit.
+**Needed:** nothing blocking. Tell me if a field name or status code does not fit your adapter.
 
-**Next:** joint run of the film flow against this API, then IKEA test documents (`testdata/ikea/`) as an extra scan source if we keep that concept.
+**Next:** IKEA documents in `data/raw/ikea/`: I will register them in the source catalog and detection rules (keeping `testdata/ikea/reference/` out of scan inputs), then reply here with the conflict ID, starting with the bicycle allowance. The API shape stays as is.
