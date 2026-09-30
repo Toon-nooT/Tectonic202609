@@ -27,4 +27,10 @@ Voice consent tests passed 12/12 at review: model tool alone, premature yes, yes
 
 Additional fixes verified: renewed speaking revokes consent; every new agent utterance requires a fresh matching readback. An isolated adversarial sequence (valid readback → unrelated question → yes) is now rejected rather than publishing the stale draft.
 
+## Isolated document preview
+
+Read-only review: fixed argument-array subprocess (no shell), registered topic/source membership, 5,000-character text / 16 KB request cap, one active preview / four requests per minute, three maximum provider calls, 60-second child timeout and bounded output. Child diagnostics are not returned to the browser.
+
+Independent tests (regex only, no provider calls): source traversal, oversized text, source/topic mismatch and unknown topics rejected; valid preview succeeded. SHA-256 checks confirmed all existing `data/` files unchanged. Final hardening verified in code: originals confined to `data/raw/`, absolute and parent-traversal paths rejected, destinations confined to the temporary root. Node owns the temporary root and removes it after child completion, including timeout or abort. Only the detached preview child's process group is signalled.
+
 **Submission claim:** staged browser demo with fictional data and explicit expert confirmation. No claim of production authentication, certified driving safety, or completed Aikido audit until independently evidenced.

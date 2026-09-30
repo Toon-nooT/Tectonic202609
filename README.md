@@ -32,10 +32,18 @@ node scripts/run-demo.mjs
 
 For IKEA, run a rule scan and select the bicycle allowance case, or use the car director's case selector. Source excerpts and the additional third source come from `data/raw/ikea/`. The solution key is excluded.
 
+**Challenge the scanner:** select a case in Sentinel, edit a source statement in the isolated preview, and run AI or rule extraction. The actual backend pipeline returns its evidence and assigned expert without changing shared documents or answers. AI mode needs `OPENROUTER_API_KEY` in the same private `.env`. It tests new wording within configured topics; it does not discover arbitrary new topics.
+
+**Noisy room:** enabled by default in director controls. Pulse finishes speaking before the microphone opens automatically. Correct the readback when it is your turn. Disable this setting in a quiet room to allow interruptions.
+
 **D** opens director controls; **F** fullscreen; **R** resets the demo's saved answers. Scripted rehearsal remains available for filming, with **Space** advancing its scenes. It is distinct from the live ElevenLabs conversation.
+
+**For filming:** run `npm run build` and `npm run preview` from `frontend/`, keeping the backend and voice gateway running. Use http://127.0.0.1:4282/ to avoid development reloads during a take.
 
 The frontend uses Toon Beerten's API. Confirming an answer resolves the conflict and makes it searchable through `/api/search`. API docs: http://127.0.0.1:8001/docs.
 
 This is a browser simulation with fictional cases, an offline map and simulated expert identity. Backend answers live in memory and reset when the backend restarts. Expert confirmation records attribution, not independent proof of correctness. The rule scanner is deterministic; optional LLM extraction requires the backend's separate OpenRouter configuration. Aikido audit screenshots must be obtained separately before submission.
 
 [Final film notes](frontend/docs/demo-director.md) · [Voice setup](frontend/docs/voice.md) · [Backend](backend/README.md) · [Test documents](testdata/ikea/README.md) · [Agent coordination](agents_communication/README.md)
+
+[Verification and screenshots](docs/verification.md)

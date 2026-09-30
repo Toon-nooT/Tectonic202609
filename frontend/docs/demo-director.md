@@ -2,8 +2,11 @@
 
 Use alongside your film concept. **Target: 2:40.** Chair and laptop stay stationary.
 
-**Dashboard:** http://localhost:4280/  
-**Colleague:** http://localhost:4280/?view=knowledge&q=Volvo
+**Dashboard:** http://localhost:4282/
+
+**Colleague:** http://localhost:4282/?view=knowledge&q=Volvo
+
+Port 4282 is the built preview for filming; it avoids development reloads. Run `npm run build` then `npm run preview` from `frontend/` alongside the backend and voice gateway.
 
 ## Run of show
 

@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { agentConfig } from './agent-config.mjs';
+import { handleDocumentPreview } from './preview-handler.mjs';
 const rootEnv=fileURLToPath(new URL('../../.env',import.meta.url));
 if(existsSync(rootEnv))process.loadEnvFile(rootEnv);
 const key=process.env.ELEVENLABS_API_KEY || process.env.XI_API_KEY;
@@ -31,6 +32,8 @@ async function ensureAgent(){
   return provisionPromise;
 }
 const server=http.createServer(async(req,res)=>{
+  try { if(await handleDocumentPreview(req,res)) return; }
+  catch { res.writeHead(500,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({error:'The isolated preview could not complete.'}));return; }
   const reply=(status,data)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));};
   const origin=req.headers.origin;
   if(origin && !allowed.has(origin))return reply(403,{error:'Origin not allowed.'});
@@ -50,5 +53,5 @@ const server=http.createServer(async(req,res)=>{
   catch(error){reply(502,{error:error.name==='TimeoutError'?'Voice provider timed out. Please retry.':error.message});}
   finally{upstreamActive--;}
 });
-server.requestTimeout=10000;server.headersTimeout=10000;server.timeout=30000;
+server.requestTimeout=10000;server.headersTimeout=10000;server.timeout=75000;
 server.listen(8002,'127.0.0.1',()=>console.log('KnowledgePulse voice gateway http://127.0.0.1:8002'));

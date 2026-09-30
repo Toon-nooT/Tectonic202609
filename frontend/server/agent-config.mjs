@@ -13,7 +13,7 @@ export function agentConfig(voiceId) {
         tool('end_session','End when user says stop/later or after successful save.',{}),
       ]}},
       tts:{voice_id:voiceId,model_id:'eleven_flash_v2'},
-      turn:{turn_timeout:12},
+      turn:{turn_timeout:15,turn_eagerness:'patient',speculative_turn:false},
       conversation:{max_duration_seconds:240,client_events:['audio','interruption','user_transcript','agent_response','agent_response_correction','client_tool_call']},
     },platform_settings:{auth:{enable_auth:true},privacy:{record_voice:false,retention_days:1,delete_audio:true},call_limits:{agent_concurrency_limit:3,bursting_enabled:false}},
   };
