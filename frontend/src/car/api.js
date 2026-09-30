@@ -1,7 +1,8 @@
 // UI adapter only. Toon owns the production-facing backend contract.
 // No phone, calendar, Teams or outreach endpoint is called from this module.
-const configuredBase = (import.meta.env?.VITE_TOON_API_URL || '').trim().replace(/\/+$/, '');
-const mode = configuredBase ? 'toon' : 'local';
+const configuredTarget = (import.meta.env?.VITE_TOON_API_URL || '/').trim();
+const configuredBase = configuredTarget.replace(/\/+$/, '');
+const mode = configuredTarget === 'local' ? 'local' : 'toon';
 
 function adapterError(message, status = 0, code = 'ADAPTER_ERROR') {
   return Object.assign(new Error(message), { status, code });
@@ -23,7 +24,7 @@ async function request(path, body, backend = mode) {
     try { data = text ? JSON.parse(text) : {}; }
     catch { throw adapterError('The backend returned a non-JSON response. Check its API address and endpoint contract.', response.status, 'INVALID_RESPONSE'); }
     if (!response.ok) {
-      const detail = typeof data.detail === 'string' ? data.detail : undefined;
+      const detail = typeof data.detail === 'string' ? data.detail : Array.isArray(data.detail) ? data.detail.map((item) => `${(item.loc || []).join('.')}: ${item.msg}`).join('; ') : undefined;
       throw adapterError(data.error || detail || data.message || `Backend request failed (${response.status}).`, response.status, data.code || 'BACKEND_ERROR');
     }
     return data;
@@ -51,14 +52,14 @@ function normalizeToonConflict(conflict) {
   const topic = conflict.topic || 'Knowledge clarification';
   return {
     id: conflict.id, title: topic, client,
-    question: conflict.question || `For ${client}: one source says ${conflict.source_a.excerpt} Another says ${conflict.source_b.excerpt} Which applies, and when?`,
+    question: `For ${client}: one source says ${conflict.source_a.excerpt} Another says ${conflict.source_b.excerpt} Which applies, and when?`,
     expertName: conflict.assigned_sme.name || 'Assigned expert', expertRole: conflict.assigned_sme.role || 'Subject matter expert',
-    optionA: conflict.option_a || conflict.source_a.excerpt,
-    optionB: conflict.option_b || conflict.source_b.excerpt,
+    optionA: conflict.source_a.excerpt,
+    optionB: conflict.source_b.excerpt,
     sourceA: { title: conflict.source_a.title || 'Source A', excerpt: conflict.source_a.excerpt },
     sourceB: { title: conflict.source_b.title || 'Source B', excerpt: conflict.source_b.excerpt },
     suggestedAnswer: '', // The frontend must not infer which source is correct.
-    scope: conflict.scope || `${client} · ${topic}`,
+    scope: `${client} · ${topic}`,
     mode: 'toon',
     context: Number.isFinite(conflict.active_tickets_count) ? `${conflict.active_tickets_count} related open tickets · ${client}` : `A clarification is waiting for ${conflict.assigned_sme.name || 'the assigned expert'}.`,
     _toon: { smeId: conflict.assigned_sme.id, status: conflict.status },
@@ -68,9 +69,9 @@ function normalizeToonConflict(conflict) {
 export async function getQuestion() {
   if (mode === 'toon') {
     const result = await request('/api/conflicts/pending');
-    const conflicts = Array.isArray(result) ? result : result.conflicts;
-    if (!Array.isArray(conflicts)) throw adapterError('Expected an array of conflicts, or {conflicts: [...]}, from the backend.', 0, 'CONTRACT_MISMATCH');
-    const pending = conflicts.filter((conflict) => !['RESOLVED', 'resolved'].includes(conflict.status));
+    const conflicts = result;
+    if (!Array.isArray(conflicts)) throw adapterError('Expected the backend’s array of pending conflicts.', 0, 'CONTRACT_MISMATCH');
+    const pending = conflicts.filter((conflict) => conflict.status === 'OPEN');
     if (!pending.length) throw adapterError('No pending knowledge question is available. Seed or scan the backend to prepare the demo.', 404, 'NO_PENDING_QUESTION');
     const ranked = [...pending].sort((a, b) => (Number(b.priority_score) || 0) - (Number(a.priority_score) || 0));
     return normalizeToonConflict(ranked[0]);
@@ -115,18 +116,25 @@ export async function submitAnswer(question, { choice, explanation = '' }) {
 
   if (question.mode === 'toon') {
     if (!question._toon?.smeId) throw adapterError('The assigned expert is missing. Reload the question.', 400, 'CONTRACT_MISMATCH');
-    // Proposed resolve contract is documented in the handoff. Require the
-    // backend's actual persisted answer/provenance before showing verification.
-    const result = await request('/api/conflicts/resolve', {
-      conflict_id: question.id, sme_id: question._toon.smeId,
-      choice, explanation: note, answer: selected, scope: question.scope,
+    // A/B stores the selected excerpt. Any edited or spoken wording must be
+    // CUSTOM, otherwise this backend would discard it and store only the excerpt.
+    const custom = choice === 'custom' || Boolean(note && note !== selected.trim());
+    const confirmedAnswer = custom ? note : selected;
+    const record = await request('/api/conflicts/resolve', {
+      conflict_id: question.id,
+      chosen_option: custom ? 'CUSTOM' : choice,
+      ...(custom ? { custom_answer: confirmedAnswer } : {}),
+      verifier_id: question._toon.smeId,
       verification_source: 'Car demo · expert confirmed',
     }, 'toon');
-    const record = result.verified_knowledge || result;
-    if (typeof record.verified_answer !== 'string' || !record.verified_answer.trim() || typeof record.verified_by !== 'string' || !record.verified_by.trim() || typeof record.verified_at !== 'string' || !Number.isFinite(Date.parse(record.verified_at))) {
+    const resultScope = record.client_context && record.topic ? `${record.client_context} · ${record.topic}` : question.scope;
+    if (['PENDING', 'PENDING_REVIEW', 'DRAFT'].includes(String(record.status || '').toUpperCase())) {
+      return { answer: record.verified_answer || confirmedAnswer, scope: resultScope, verifiedBy: null, verifiedAt: null, status: 'pending_review', mode: 'toon' };
+    }
+    if (record.resolved_conflict_id !== question.id || typeof record.verified_answer !== 'string' || !record.verified_answer.trim() || typeof record.verified_by !== 'string' || !record.verified_by.trim() || typeof record.verified_at !== 'string' || !Number.isFinite(Date.parse(record.verified_at))) {
       throw adapterError('The backend accepted the request but did not return the agreed verification record. Check the saved state before retrying; see docs/backend-handoff.md.', 0, 'CONTRACT_MISMATCH');
     }
-    return { answer: record.verified_answer, scope: record.scope || question.scope, verifiedBy: record.verified_by, verifiedAt: record.verified_at, status: 'verified', mode: 'toon' };
+    return { answer: record.verified_answer, scope: resultScope, verifiedBy: record.verified_by, verifiedAt: record.verified_at, status: 'verified', mode: 'toon' };
   }
 
   if (!question._local?.sourceVersions || !question._local?.ownerId) throw adapterError('Reload the local question before submitting.', 409, 'STALE_SOURCES');
@@ -153,6 +161,10 @@ export async function submitAnswer(question, { choice, explanation = '' }) {
 }
 
 export async function resetDemo() {
-  if (mode === 'toon') throw adapterError('Toon’s backend does not yet define a reset endpoint. Reset or reseed it on the backend, then reload this screen.', 501, 'RESET_NOT_CONFIGURED');
+  if (mode === 'toon') {
+    const result = await request('/api/demo/reset?seed_conflicts=true', {}, 'toon');
+    if (result.status !== 'reset') throw adapterError('The backend did not confirm the demo reset.', 0, 'CONTRACT_MISMATCH');
+    return;
+  }
   await request('/api/reset', {}, 'local');
 }

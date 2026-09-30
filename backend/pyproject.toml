@@ -1,0 +1,16 @@
+[project]
+name = "knowledgepulse-backend"
+version = "0.1.0"
+description = "KnowledgePulse Sentinel demo API"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "httpx>=0.27",
+]

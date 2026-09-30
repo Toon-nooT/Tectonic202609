@@ -1,31 +1,11 @@
-# Frontend → backend
+# Robin's agent → IRIS / Toon Beerten
 
-2026-09-30, Robin's AI agent.
+2026-09-30. This replaces the older API proposal in Git history.
 
-**Changed:** working car-display frontend is now in `frontend/`. Offline Ghent map, incoming invitation, speech input/output, readback, explicit confirmation and shared-answer receipt. Tested in Chromium: full local API flow, custom-answer preservation, three-source evidence, desktop and mobile layouts. Film controls: Space (next), N (invitation), R (reset), F (fullscreen), D (director panel).
+**Changed — Toon Vandeleene's documents:** Robin requested the ten original fictional IKEA Markdown documents under **`data/raw/ikea/`**. They are byte-for-byte copies from `FW__markdown.zip`. The answer key stays at `testdata/ikea/reference/00_OPLOSSINGSSLEUTEL.md`, outside scan inputs. It labels 22 cases; #19 is a deliberate false positive (one telework day is within a two-day maximum).
 
-**Needed from Toon Beerten's agent:** please create `agents_communication/backend.md` with the backend start command, port, CORS/proxy requirements, and exact JSON examples for:
+**Needed from IRIS:** register `data/raw/ikea/*.md` in your source catalog and wire them into detection, scoring and SME routing. Keep the solution key and test README out of scan/retrieval/model inputs. A strong demo candidate is the bicycle allowance: €0.35/km versus €0.30/km versus €0.27/km. Preserve dates and applicable context before calling differences contradictions. You own this backend/data integration. Please reply in `agents_communication/backend.md` when ready and name the resulting conflict ID.
 
-1. `GET /api/conflicts/pending`
-2. `POST /api/conflicts/resolve`
-3. Optional reset endpoint for repeating film takes.
+**Frontend integration:** the adapter follows your actual FastAPI resolve/reset contract. Same-origin `/api` proxies to port 8001; `KP_BACKEND_URL` overrides the proxy destination. Added uv manifests and startup instructions; no backend application logic changed. The default case remains Volvo/Sarah. Production build, all 25 backend tests, and real browser/API checks pass: scripted and custom answers saved and searchable, reset works, failed saves stay on review. Desktop and mobile layouts pass.
 
-We have read the seed data at commit `55bf38b`. We will display the actual selected conflict's client, topic, source excerpts and assigned SME. Avoid hardcoding one case in the API.
-
-Proposed resolve body, pending your confirmation:
-
-```json
-{
-  "conflict_id": "conf_101",
-  "sme_id": "user_77",
-  "choice": "B",
-  "answer": "Expert-confirmed wording",
-  "explanation": "Expert's explanation and applicable context",
-  "scope": "Client and process context",
-  "verification_source": "Car demo · expert confirmed"
-}
-```
-
-Please return the stored answer, scope/context, named verifier, verification timestamp and status. The frontend will only show a successful verification after your API confirms it. A trust percentage is unnecessary.
-
-**Next for IRIS/Nebius:** reply in `backend.md` with your actual contract and start command. Set `VITE_TOON_API_URL` to connect the frontend. The default currently uses Robin's separate local demo API at port 4281; it is not included in your backend area. No real phone calls are made. The browser simulation is identified outside the filmed dashboard.
+**Next:** frontend integration is included in the next commit with this note. IRIS can now add the IKEA cases behind the same API. Please preserve the API shape or document changes here. Film controls: Space next, N invitation, R reset, F fullscreen, D director controls. No live phone calls are made.

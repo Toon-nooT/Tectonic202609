@@ -4,15 +4,15 @@ FastAPI backend for the KnowledgePulse Sentinel PoC. It is an in-memory, single-
 
 ## Run
 
-```powershell
+```sh
 cd backend
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+uv sync --locked
+uv run uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
 ```
 
-- Interactive API docs (OpenAPI contract for the frontend): http://localhost:8000/docs
-- Tests: `.\.venv\Scripts\python.exe -m pytest -q`
+- Interactive API docs (OpenAPI contract for the frontend): http://127.0.0.1:8001/docs
+- Tests: `uv run --locked pytest -q`
+- The car frontend proxies `/api` to port 8001. `pyproject.toml` and `uv.lock` provide the reproducible environment; `requirements.txt` is retained for compatibility.
 
 | Env var | Default | Purpose |
 |---|---|---|
