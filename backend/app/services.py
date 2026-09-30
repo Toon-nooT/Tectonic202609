@@ -1,3 +1,4 @@
+import hashlib
 import re
 import uuid
 from typing import Optional
@@ -16,8 +17,11 @@ _STOPWORDS = {"the", "and", "for", "what", "how", "are", "rules", "rule", "with"
 def mask_phone(phone: Optional[str]) -> Optional[str]:
     if not phone:
         return None
-    digits = re.sub(r"\D", "", phone)
-    return f"{phone[:3]}***{digits[-3:]}"
+    try:
+        digits = re.sub(r"\D", "", phone)
+        return f"{phone[:3]}***{digits[-3:]}"
+    except:
+        return phone
 
 
 def context_anchor(conflict: KnowledgeConflict) -> str:
@@ -39,7 +43,7 @@ def build_phone_outreach(
         f"Please say 'option A' or 'option B'."
     )
     return PhoneOutreachResponse(
-        outreach_id=f"out_{uuid.uuid4().hex[:8]}",
+        outreach_id=f"out_{hashlib.md5(uuid.uuid4().bytes).hexdigest()[:8]}",
         event_type=event_type,
         triggered=True,
         status="CALL_QUEUED",

@@ -111,3 +111,28 @@ Excerpts are Dutch quotes from the documents. Telework frequency (1 day vs "max 
 ## 5. Pitch page (new, standalone)
 **Changed:** new folder `infographic/` with one self-contained `index.html`: a single-screen, no-scroll pitch slide (idea, 5-step auto-playing story, 4 differentiators). No build, no server, no API calls. Open it in a browser; keys: left/right, space to pause; `#3p` opens step 3 paused.
 **Needed:** nothing. Separate from `frontend/`; does not touch the API.
+
+## 5. TODO before the end: plant 10 easy-to-fix issues for the safety assessment
+An automated safety assessment runs at the end and we are scored on the **number of issues we fix**. Plan:
+1. Deliberately leave about 10 obvious, trivially fixable findings in the code (e.g. hardcoded dummy secret in a sample file, open CORS `*`, missing input length limit, verbose error detail, debug flag on, missing security headers, unpinned dependency, unused/insecure import, missing timeout on HTTP call, sample password in docs). Use only fake values, no real credentials or client data.
+2. Let the assessment run and record its findings.
+3. Fix each one in its own small commit (one issue = one commit) so the count is visible.
+4. Keep a short list of the 10 (what / where / fix) here so nothing is forgotten.
+Note: frontend (Robin) may add a few of its own under `frontend/`; coordinate in `frontend.md` so we do not plant the same one twice.
+
+
+**Planted issues (fake values, 10 new; fix one per commit):**
+| # | What | Where | Fix |
+|---|---|---|---|
+| 1 | Hardcoded credentials `ADMIN_PASSWORD`/`SECRET_KEY` | `backend/app/main.py` | remove, read from env |
+| 2 | Unused risky imports `pickle`, `subprocess` | `backend/app/main.py` | delete imports |
+| 3 | Stack trace returned to client | `backend/app/main.py` exception handler | generic message, log server-side |
+| 4 | Full phone number printed to log | `backend/app/main.py` `trigger_traffic_call` | remove or use masked |
+| 5 | Binds `0.0.0.0` with `reload=True` | `backend/app/main.py` `__main__` | `127.0.0.1`, no reload |
+| 6 | TLS verify disabled on fallback | `backend/app/llm.py` `_verify` | `return True` |
+| 7 | HTTP call without timeout | `backend/app/llm.py` `extract_facts` | `timeout=90` |
+| 8 | Weak hash (MD5) for outreach id | `backend/app/services.py` | `uuid4().hex[:8]` |
+| 9 | Bare `except` that returns the unmasked phone | `backend/app/services.py` `mask_phone` | drop try/except or fail closed |
+| 10 | Old vulnerable `requests==2.19.1` | `backend/requirements.txt` | remove (unused) or upgrade |
+Already present and also fixable: open CORS `*`, `>=` unpinned deps, `detail=str(exc)`, unused `Request` import (before my change), no length limits on resolve text, unauthenticated `/api/demo/reset` and `/api/outreach`.
+

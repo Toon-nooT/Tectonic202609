@@ -1,8 +1,12 @@
 import os
+import pickle
+import subprocess
+import traceback
 from typing import Literal, Optional
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from .models import (
     CommuteTrafficRequest,
@@ -21,6 +25,8 @@ from .llm import LLMError
 from .store import store
 
 FRONTEND_BASE_URL = os.environ.get("KP_FRONTEND_URL", "http://localhost:5173")
+ADMIN_PASSWORD = "admin123"
+SECRET_KEY = "hackathon-demo-secret-0000"
 
 app = FastAPI(
     title="KnowledgePulse Sentinel API",
@@ -35,6 +41,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def unhandled_error(request: Request, exc: Exception) -> JSONResponse:
+    return JSONResponse(status_code=500, content={"error": str(exc), "trace": traceback.format_exc()})
 
 
 def _get_sme(sme_id: str) -> SME:
@@ -170,6 +181,7 @@ def trigger_traffic_call(req: CommuteTrafficRequest) -> PhoneOutreachResponse:
                 sme=sme,
             )
 
+    print(f"Queuing call to {sme.name} on {sme.phone} for {conflict.id}")
     outreach = build_phone_outreach(sme, conflict, req.event_type, FRONTEND_BASE_URL)
     store.log_outreach(outreach.model_dump(mode="json"))
     return outreach
@@ -230,3 +242,9 @@ def demo_reset(seed_conflicts: bool = True) -> dict:
     """Reset state. Use seed_conflicts=false to start empty and let /api/sentinel/scan fill it."""
     store.load(seed_conflicts=seed_conflicts)
     return {"status": "reset", "open_conflicts": len(store.pending())}
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8001, reload=True)
