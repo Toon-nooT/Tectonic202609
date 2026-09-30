@@ -1,0 +1,9 @@
+country,policy_area,category,condition,amount,currency,unit,valid_from,valid_to,owner,last_reviewed
+FR,on_call,weeknight,standard,45,EUR,per_night,2025-01-01,,Compensation,2025-12-10
+FR,on_call,weekend,standard,80,EUR,per_day,2025-01-01,,Compensation,2025-12-10
+FR,on_call,public_holiday,standard,110,EUR,per_day,2025-01-01,,Compensation,2025-12-10
+FR,on_call,intervention,remote,30,EUR,per_event,2025-01-01,,Compensation,2025-12-10
+FR,on_call,intervention,on_site,75,EUR,per_event,2025-01-01,,Compensation,2025-12-10
+FR,standby,weeknight,reduced_availability,20,EUR,per_night,2025-01-01,,Compensation,2025-12-10
+FR,travel,mileage,personal_vehicle,0.603,EUR,per_km,2025-01-01,2025-12-31,Compensation,2025-12-10
+FR,travel,mileage,personal_vehicle,0.621,EUR,per_km,2026-01-01,,Compensation,2025-12-10

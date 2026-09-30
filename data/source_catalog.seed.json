@@ -1,0 +1,72 @@
+[
+  {
+    "source_id": "src_001",
+    "system": "SharePoint",
+    "format": "html",
+    "mime_type": "text/html",
+    "raw_path": "data/raw/sharepoint/BE-PC200-LeavePolicy2025.html"
+  },
+  {
+    "source_id": "src_002",
+    "system": "Microsoft Teams",
+    "format": "json",
+    "mime_type": "application/json",
+    "raw_path": "data/raw/teams/payroll-be-thread-2026-09-28.json"
+  },
+  {
+    "source_id": "src_003",
+    "system": "Confluence",
+    "format": "md",
+    "mime_type": "text/markdown",
+    "raw_path": "data/raw/confluence/expense-policy-emea-v4.md"
+  },
+  {
+    "source_id": "src_004",
+    "system": "Exchange",
+    "format": "eml",
+    "mime_type": "message/rfc822",
+    "raw_path": "data/raw/exchange/CFO-update-expense-sla.eml"
+  },
+  {
+    "source_id": "src_005",
+    "system": "SharePoint",
+    "format": "csv",
+    "mime_type": "text/csv",
+    "raw_path": "data/raw/sharepoint/FR-oncall-compensation-matrix.csv"
+  },
+  {
+    "source_id": "src_006",
+    "system": "Microsoft Stream",
+    "format": "vtt",
+    "mime_type": "text/vtt",
+    "raw_path": "data/raw/stream/fr-payroll-sync-2026-09-15.vtt"
+  },
+  {
+    "source_id": "src_007",
+    "system": "Internal Knowledge Base",
+    "format": "md",
+    "mime_type": "text/markdown",
+    "raw_path": "data/raw/kb/be-holiday-carryover.md"
+  },
+  {
+    "source_id": "src_008",
+    "system": "Rules Data Lake",
+    "format": "csv",
+    "mime_type": "text/csv",
+    "raw_path": "data/raw/rules/be_leave_rules_snapshot_2026_09_20.csv"
+  },
+  {
+    "source_id": "src_009",
+    "system": "SharePoint",
+    "format": "txt",
+    "mime_type": "text/plain",
+    "raw_path": "data/raw/sharepoint/benefits-nightshift-rollout.txt"
+  },
+  {
+    "source_id": "src_010",
+    "system": "ServiceNow",
+    "format": "json",
+    "mime_type": "application/json",
+    "raw_path": "data/raw/servicenow/ticket-cluster-nightshift-vouchers.json"
+  }
+]

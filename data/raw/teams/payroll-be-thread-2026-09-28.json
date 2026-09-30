@@ -1,0 +1,63 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#teams('t-8f21')/channels('19:payroll-be')/messages",
+  "@odata.count": 7,
+  "value": [
+    {
+      "id": "1759047120001",
+      "messageType": "message",
+      "createdDateTime": "2026-09-28T07:32:00.000Z",
+      "from": { "user": { "id": "u-4412", "displayName": "Jelle Peeters" } },
+      "body": { "contentType": "html", "content": "<p>Morning all, anyone free to look at the Volvo ticket batch?</p>" },
+      "reactions": []
+    },
+    {
+      "id": "1759047540002",
+      "messageType": "message",
+      "createdDateTime": "2026-09-28T07:39:00.000Z",
+      "from": { "user": { "id": "u-5590", "displayName": "Ines Dubois" } },
+      "body": { "contentType": "html", "content": "<p>Yes, which ones? The ones about night shift overtime?</p>" },
+      "reactions": [{ "reactionType": "like", "createdDateTime": "2026-09-28T07:40:10.000Z" }]
+    },
+    {
+      "id": "1759047780003",
+      "messageType": "message",
+      "createdDateTime": "2026-09-28T07:43:00.000Z",
+      "from": { "user": { "id": "u-4412", "displayName": "Jelle Peeters" } },
+      "body": { "contentType": "html", "content": "<p>Exactly. Customer is asking why their night crew is paid at 150% after 7.5h and not after 8h like the policy doc says</p>" },
+      "reactions": []
+    },
+    {
+      "id": "1759048320004",
+      "messageType": "message",
+      "createdDateTime": "2026-09-28T07:52:00.000Z",
+      "from": { "user": { "id": "u-3301", "displayName": "Marc Janssens" } },
+      "body": { "contentType": "html", "content": "<p>From what I remember in the last CAO update: 150% rate applies after 7.5 hours for night shifts. Not sure if the SharePoint doc was ever updated though</p>" },
+      "reactions": [{ "reactionType": "like", "createdDateTime": "2026-09-28T07:53:30.000Z" }]
+    },
+    {
+      "id": "1759048800005",
+      "messageType": "message",
+      "createdDateTime": "2026-09-28T08:00:00.000Z",
+      "from": { "user": { "id": "u-5590", "displayName": "Ines Dubois" } },
+      "body": { "contentType": "html", "content": "<p>I've been telling the agents 8h for weeks... @Sarah can you confirm?</p>" },
+      "mentions": [{ "id": 0, "mentionText": "Sarah", "mentioned": { "user": { "id": "u-77", "displayName": "Sarah De Vos" } } }],
+      "reactions": []
+    },
+    {
+      "id": "1759050000006",
+      "messageType": "message",
+      "createdDateTime": "2026-09-28T08:20:00.000Z",
+      "from": { "user": { "id": "u-4412", "displayName": "Jelle Peeters" } },
+      "body": { "contentType": "html", "content": "<p>Also unrelated: lunch at 12:30 today? Team building thing in the canteen.</p>" },
+      "reactions": [{ "reactionType": "heart", "createdDateTime": "2026-09-28T08:21:02.000Z" }]
+    },
+    {
+      "id": "1759050660007",
+      "messageType": "message",
+      "createdDateTime": "2026-09-28T08:31:00.000Z",
+      "from": { "user": { "id": "u-3301", "displayName": "Marc Janssens" } },
+      "body": { "contentType": "html", "content": "<p>Sarah is in client meetings all day, no answer yet. Leaving the ticket on hold for now.</p>" },
+      "reactions": []
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "smes": [
+    {
+      "id": "user_77",
+      "name": "Sarah De Vos",
+      "role": "Senior Payroll Lead",
+      "phone": "+32-470-100-777",
+      "teams_id": "sarah.devos@sdworx.example"
+    },
+    {
+      "id": "user_81",
+      "name": "Nina Verhaegen",
+      "role": "Finance Process Manager",
+      "phone": "+32-470-100-781",
+      "teams_id": "nina.verhaegen@sdworx.example"
+    },
+    {
+      "id": "user_88",
+      "name": "Tom Claes",
+      "role": "Benefits Program Owner",
+      "phone": "+32-470-100-788",
+      "teams_id": "tom.claes@sdworx.example"
+    },
+    {
+      "id": "user_95",
+      "name": "Luc Martin",
+      "role": "FR Payroll Specialist",
+      "phone": "+33-6-44-100-995",
+      "teams_id": "luc.martin@sdworx.example"
+    }
+  ],
+  "frontline_agents": [
+    {
+      "id": "agent_01",
+      "name": "Marc Janssens",
+      "region": "BE",
+      "team": "Payroll Support"
+    }
+  ]
+}

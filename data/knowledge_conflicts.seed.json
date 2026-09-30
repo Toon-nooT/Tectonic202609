@@ -1,0 +1,177 @@
+[
+  {
+    "id": "conf_101",
+    "topic": "PC 200 Overtime Calculation",
+    "client_context": "Volvo Group",
+    "client_tier": 3,
+    "active_tickets_count": 14,
+    "conflict_severity": "HIGH",
+    "source_a": {
+      "source_id": "src_001",
+      "type": "SharePoint Document",
+      "format": "html",
+      "title": "BE-PC200-LeavePolicy2025.html",
+      "owner_team": "Payroll Policy",
+      "uri": "sharepoint://policies/be/BE-PC200-LeavePolicy2025.html",
+      "raw_path": "data/raw/sharepoint/BE-PC200-LeavePolicy2025.html",
+      "excerpt": "150% rate applies after 8 hours worked."
+    },
+    "source_b": {
+      "source_id": "src_002",
+      "type": "Teams Chat Export",
+      "format": "json",
+      "title": "payroll-be-thread-2026-09-28.json",
+      "owner_team": "Payroll Operations",
+      "uri": "teams://exports/payroll-be/payroll-be-thread-2026-09-28.json",
+      "raw_path": "data/raw/teams/payroll-be-thread-2026-09-28.json",
+      "excerpt": "150% rate applies after 7.5 hours for night shifts."
+    },
+    "priority_score": 420,
+    "assigned_sme": {
+      "id": "user_77",
+      "name": "Sarah De Vos",
+      "role": "Senior Payroll Lead"
+    },
+    "status": "OPEN"
+  },
+  {
+    "id": "conf_102",
+    "topic": "Expense Reimbursement SLA",
+    "client_context": "Atlas Logistics",
+    "client_tier": 2,
+    "active_tickets_count": 9,
+    "conflict_severity": "MEDIUM",
+    "source_a": {
+      "source_id": "src_003",
+      "type": "Confluence Page Export",
+      "format": "md",
+      "title": "expense-policy-emea-v4.md",
+      "owner_team": "Finance Ops",
+      "uri": "confluence://finance/expense-policy-emea-v4.md",
+      "raw_path": "data/raw/confluence/expense-policy-emea-v4.md",
+      "excerpt": "Claims are reimbursed within 10 business days."
+    },
+    "source_b": {
+      "source_id": "src_004",
+      "type": "Email Archive",
+      "format": "eml",
+      "title": "CFO-update-expense-sla.eml",
+      "owner_team": "Finance Leadership",
+      "uri": "exchange://archives/2026/Q3/CFO-update-expense-sla.eml",
+      "raw_path": "data/raw/exchange/CFO-update-expense-sla.eml",
+      "excerpt": "Temporary measure: reimbursements may take up to 15 business days."
+    },
+    "priority_score": 162,
+    "assigned_sme": {
+      "id": "user_81",
+      "name": "Nina Verhaegen",
+      "role": "Finance Process Manager"
+    },
+    "status": "OPEN"
+  },
+  {
+    "id": "conf_103",
+    "topic": "On-Call Compensation in France",
+    "client_context": "AeroPulse",
+    "client_tier": 1,
+    "active_tickets_count": 6,
+    "conflict_severity": "HIGH",
+    "source_a": {
+      "source_id": "src_005",
+      "type": "Policy Spreadsheet",
+      "format": "csv",
+      "title": "FR-oncall-compensation-matrix.csv",
+      "owner_team": "Compensation",
+      "uri": "sharepoint://comp/fr/FR-oncall-compensation-matrix.csv",
+      "raw_path": "data/raw/sharepoint/FR-oncall-compensation-matrix.csv",
+      "excerpt": "Weeknight on-call allowance is fixed at EUR 45."
+    },
+    "source_b": {
+      "source_id": "src_006",
+      "type": "Meeting Recording Transcript",
+      "format": "vtt",
+      "title": "fr-payroll-sync-2026-09-15.vtt",
+      "owner_team": "Country Payroll",
+      "uri": "stream://recordings/fr-payroll-sync-2026-09-15.vtt",
+      "raw_path": "data/raw/stream/fr-payroll-sync-2026-09-15.vtt",
+      "excerpt": "Allowance was raised to EUR 55 effective September payroll."
+    },
+    "priority_score": 180,
+    "assigned_sme": {
+      "id": "user_95",
+      "name": "Luc Martin",
+      "role": "FR Payroll Specialist"
+    },
+    "status": "OPEN"
+  },
+  {
+    "id": "conf_104",
+    "topic": "Belgium Public Holiday Carry-Over",
+    "client_context": "NovaRetail",
+    "client_tier": 1,
+    "active_tickets_count": 3,
+    "conflict_severity": "LOW",
+    "source_a": {
+      "source_id": "src_007",
+      "type": "Knowledge Base Article",
+      "format": "md",
+      "title": "be-holiday-carryover.md",
+      "owner_team": "Employee Support",
+      "uri": "kb://belgium/be-holiday-carryover.md",
+      "raw_path": "data/raw/kb/be-holiday-carryover.md",
+      "excerpt": "Unused public holiday can be carried over until March 31."
+    },
+    "source_b": {
+      "source_id": "src_008",
+      "type": "CSV Rule Extract",
+      "format": "csv",
+      "title": "be_leave_rules_snapshot_2026_09_20.csv",
+      "owner_team": "Rules Engine",
+      "uri": "s3://rules/be_leave_rules_snapshot_2026_09_20.csv",
+      "raw_path": "data/raw/rules/be_leave_rules_snapshot_2026_09_20.csv",
+      "excerpt": "carry_over_deadline,2026-02-28"
+    },
+    "priority_score": 27,
+    "assigned_sme": {
+      "id": "user_77",
+      "name": "Sarah De Vos",
+      "role": "Senior Payroll Lead"
+    },
+    "status": "OPEN"
+  },
+  {
+    "id": "conf_105",
+    "topic": "Night Shift Meal Voucher Eligibility",
+    "client_context": "GreenMotion",
+    "client_tier": 2,
+    "active_tickets_count": 11,
+    "conflict_severity": "MEDIUM",
+    "source_a": {
+      "source_id": "src_009",
+      "type": "PowerPoint Brief (extracted text)",
+      "format": "txt",
+      "title": "benefits-nightshift-rollout.txt",
+      "owner_team": "Total Rewards",
+      "uri": "sharepoint://benefits/benefits-nightshift-rollout.pptx",
+      "raw_path": "data/raw/sharepoint/benefits-nightshift-rollout.txt",
+      "excerpt": "Meal vouchers apply to shifts ending after 22:00."
+    },
+    "source_b": {
+      "source_id": "src_010",
+      "type": "ServiceNow Ticket Notes",
+      "format": "json",
+      "title": "ticket-cluster-nightshift-vouchers.json",
+      "owner_team": "Support Desk",
+      "uri": "servicenow://export/ticket-cluster-nightshift-vouchers.json",
+      "raw_path": "data/raw/servicenow/ticket-cluster-nightshift-vouchers.json",
+      "excerpt": "Agents are instructed to apply vouchers only for shifts ending after 23:00."
+    },
+    "priority_score": 198,
+    "assigned_sme": {
+      "id": "user_88",
+      "name": "Tom Claes",
+      "role": "Benefits Program Owner"
+    },
+    "status": "OPEN"
+  }
+]

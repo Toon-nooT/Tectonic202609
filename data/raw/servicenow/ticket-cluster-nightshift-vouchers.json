@@ -1,0 +1,72 @@
+{
+  "export_id": "exp_20260929_0417",
+  "instance": "sdworx.service-now.example",
+  "table": "incident",
+  "query": "short_descriptionLIKEnight shift voucher^opened_at>=2026-09-01",
+  "exported_at": "2026-09-29T04:17:33Z",
+  "result": [
+    {
+      "number": "INC0048211",
+      "opened_at": "2026-09-22T08:14:02Z",
+      "state": "In Progress",
+      "priority": "3",
+      "caller_id": "GreenMotion HR",
+      "assignment_group": "Benefits Support",
+      "short_description": "Night shift meal voucher not issued",
+      "work_notes": [
+        {
+          "created_on": "2026-09-22T09:05:41Z",
+          "created_by": "agent.lina",
+          "text": "Client says shift ends 22:30. Checking eligibility."
+        },
+        {
+          "created_on": "2026-09-22T09:40:12Z",
+          "created_by": "agent.lina",
+          "text": "Per team lead: Agents are instructed to apply vouchers only for shifts ending after 23:00. Advised client accordingly."
+        }
+      ]
+    },
+    {
+      "number": "INC0048305",
+      "opened_at": "2026-09-23T13:02:55Z",
+      "state": "New",
+      "priority": "3",
+      "caller_id": "GreenMotion HR",
+      "assignment_group": "Benefits Support",
+      "short_description": "Voucher eligibility question, shift ends 22:15",
+      "work_notes": [
+        {
+          "created_on": "2026-09-23T13:30:00Z",
+          "created_by": "agent.tom",
+          "text": "Replied using 23:00 cutoff as per macro. Client unhappy."
+        }
+      ]
+    },
+    {
+      "number": "INC0048377",
+      "opened_at": "2026-09-24T07:48:19Z",
+      "state": "On Hold",
+      "priority": "2",
+      "caller_id": "GreenMotion Payroll Admin",
+      "assignment_group": "Benefits Support",
+      "short_description": "Conflicting info about voucher cutoff time",
+      "work_notes": [
+        {
+          "created_on": "2026-09-24T08:10:27Z",
+          "created_by": "agent.mia",
+          "text": "Client shared rollout deck stating 22:00. Our macro says 23:00. Waiting for owner confirmation."
+        }
+      ]
+    },
+    {
+      "number": "INC0048402",
+      "opened_at": "2026-09-24T15:21:44Z",
+      "state": "In Progress",
+      "priority": "4",
+      "caller_id": "Atlas Logistics",
+      "assignment_group": "Payroll Support",
+      "short_description": "Password reset for payslip portal",
+      "work_notes": []
+    }
+  ]
+}
