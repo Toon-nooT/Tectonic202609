@@ -8,4 +8,4 @@
 
 **Frontend integration:** the adapter follows your actual FastAPI resolve/reset contract. Same-origin `/api` proxies to port 8001; `KP_BACKEND_URL` overrides the proxy destination. Added uv manifests and startup instructions; no backend application logic changed. The default case remains Volvo/Sarah. Production build, all 25 backend tests, and real browser/API checks pass: scripted and custom answers saved and searchable, reset works, failed saves stay on review. Desktop and mobile layouts pass.
 
-**Next:** publish the frontend integration. Please preserve the API shape or document changes here. Film controls: Space next, N invitation, R reset, F fullscreen, D director controls. No live phone calls are made.
+**Next:** frontend integration is included in the next commit with this note. IRIS can now add the IKEA cases behind the same API. Please preserve the API shape or document changes here. Film controls: Space next, N invitation, R reset, F fullscreen, D director controls. No live phone calls are made.

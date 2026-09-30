@@ -7,7 +7,7 @@ npm ci
 npm run dev
 ```
 
-Open http://127.0.0.1:4280. Set `VITE_TOON_API_URL` in `.env.local` to connect to Toon Beerten's backend. Without it, the adapter uses Robin's local demo API at port 4281. The actual shared API contract is being coordinated in `../agents_communication/`.
+Open http://127.0.0.1:4280. Start Toon Beerten's backend on port 8001 using the [root instructions](../README.md). Vite proxies `/api` there by default. To change the proxy destination, start Vite with the `KP_BACKEND_URL` environment variable. For a separately hosted API, set `VITE_TOON_API_URL` in `.env.local` to its server root. No credentials are needed for the fictional demo.
 
 **Film controls:** `N` invitation · `Space` next scene · `R` reset take · `F` fullscreen · `D` director panel.
 

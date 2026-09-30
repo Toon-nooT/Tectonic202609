@@ -1,75 +1,49 @@
-# Car demo API handoff
+# Car frontend → Toon’s backend
 
-The car frontend uses `src/car/api.js`. Toon owns the backend. The browser film is a seated simulation, not an Android Auto installation or live driving integration.
+Adapter: `src/car/api.js`. Contract checked against `backend/app/main.py`, `models.py` and `store.py` at commit `5a015d8`.
 
-## Backend selection
+## Connect
 
-- Default: existing local demo API at same-origin `/api`. The Vite proxy points to the local server.
-- Toon: set `VITE_TOON_API_URL=http://127.0.0.1:8000` before starting Vite or building. Use the server root URL, without `/api`. Configure that backend to allow the frontend origin through CORS when ports differ.
-- The adapter never falls back from a failed Toon connection to local data. Errors remain visible.
-- No secrets belong in a `VITE_` variable. These values are public browser configuration.
+The default uses same-origin `/api` through Vite's proxy to `http://127.0.0.1:8001`. Set `KP_BACKEND_URL` when launching Vite to change its proxy target. For direct API access, set `VITE_TOON_API_URL` to the backend's server root, without `/api`, before starting Vite or building. A failed Toon connection never falls back to local data. The optional legacy Meridian adapter requires `VITE_TOON_API_URL=local` and a proxy to Robin's separate local server; that server is not part of this repository.
 
-## Normalized frontend functions
+Run `uv sync --locked`, then `uv run uvicorn app.main:app --host 127.0.0.1 --port 8001` from `backend/`. `pyproject.toml` and `uv.lock` now provide the managed environment. The backend permits all CORS origins without credentials. Port 8001 avoids an unrelated local server on port 8000.
 
-```js
-getQuestion() // -> {id,title,client,question,expertName,expertRole,optionA,optionB,
-              //     sourceA:{title,excerpt},sourceB:{title,excerpt},
-              //     suggestedAnswer,scope,mode,context}
-submitAnswer(question, {choice: 'A' | 'B' | 'custom', explanation: string})
-  // -> {answer,scope,verifiedBy,verifiedAt,status,mode}
-resetDemo()
-```
+## Actual requests
 
-Keep the complete question object between loading and submission. Private `_local` / `_toon` metadata carries the source versions or assigned expert ID. `context` is display text. `mode` is `local` or `toon`. Results use `verified` or `pending_review`; a pending result has no verifier or verification timestamp and must not display a verified badge.
-
-The UI must show the selected wording for explicit **Confirm and share** before calling `submitAnswer`. The adapter does not parse speech semantically or decide which answer an arbitrary utterance supports. Voice transcription is input to the user's review.
-
-## Toon endpoints currently documented in the shared plan
-
-`GET /api/conflicts/pending` returns an array, or `{ "conflicts": [...] }`, containing the plan's `KnowledgeConflict` shape. The adapter selects the highest numeric `priority_score` among unresolved records and maps `source_a`, `source_b`, `client_context` and `assigned_sme`.
-
-Optional fields `question`, `option_a`, `option_b` and `scope` improve spoken presentation. Without them, source excerpts become the choices. The frontend does not infer a correct answer.
-
-### Resolve contract requiring agreement with Toon
-
-The shared plan names `POST /api/conflicts/resolve` but does **not** yet specify its request body or actual implementation. The adapter currently sends this proposed body:
+- `GET /api/conflicts/pending` returns a direct array of `KnowledgeConflict` objects. The frontend selects the highest priority OPEN item. The default case is Volvo overtime, assigned to Sarah De Vos. Its spoken question includes **both actual source excerpts**.
+- `POST /api/conflicts/resolve` takes this exact shape:
 
 ```json
 {
   "conflict_id": "conf_101",
-  "sme_id": "user_77",
-  "choice": "B",
-  "explanation": "The exception applies to night shifts only.",
-  "answer": "The option the expert explicitly confirmed.",
-  "scope": "Client and process scope displayed to the expert",
+  "chosen_option": "B",
+  "verifier_id": "user_77",
   "verification_source": "Car demo · expert confirmed"
 }
 ```
 
-The response must be the plan's `VerifiedKnowledge` record, directly or under `verified_knowledge`:
+For expert wording, use `chosen_option: "CUSTOM"` plus `custom_answer`. The adapter automatically uses CUSTOM whenever the user confirms wording different from the selected source excerpt. This preserves speech/text verbatim instead of silently discarding it. There are no `explanation`, `scope`, `answer` or `sme_id` fields on this request model.
 
-```json
-{
-  "verified_answer": "The persisted scoped clarification.",
-  "verified_by": "Sarah De Vos (Senior Payroll Lead)",
-  "verified_at": "2026-09-30T14:41:00Z",
-  "scope": "Optional more precise persisted scope"
-}
+The response is a direct `VerifiedKnowledge` record containing `resolved_conflict_id`, `verified_answer`, `verified_by`, `verified_at`, `topic`, `client_context`, `verification_source` and `archived_conflict_note`. The frontend checks the conflict ID and provenance before showing verification. Context is displayed as the returned client and topic. A pending status, if introduced later, remains pending in the UI.
+
+- `POST /api/demo/reset?seed_conflicts=true` returns `{ "status": "reset", "open_conflicts": 5 }`. Reset take uses this endpoint and reloads the top question. It clears **all demo answers**, not just this browser’s current answer.
+
+## UI interface
+
+```js
+getQuestion()
+submitAnswer(question, { choice: 'A' | 'B' | 'custom', explanation: 'confirmed wording' })
+resetDemo()
 ```
 
-The browser requires the persisted answer, verifier and timestamp before showing success. It does not manufacture those fields when the backend's response differs. This integration has **not** been verified against Toon's implementation. Confirm the payload and response before filming with Toon mode.
+Preserve the full question object: internal `_toon` metadata carries its assigned verifier. `context` is display text. Results contain `{answer, scope, verifiedBy, verifiedAt, status, mode}`. Show a verification badge only when `status === 'verified'`.
 
-The plan defines `POST /api/commute/trigger-traffic-call`. This frontend **does not call it**: it may initiate real phone outreach. The car notification is a local film interaction, not evidence of a phone call or live traffic detection.
+The user must review the captured wording and explicitly choose **Confirm and share**. The adapter does not interpret arbitrary speech or decide which source is correct.
 
-No Toon reset endpoint is specified. `resetDemo()` reports that limitation in Toon mode; the backend owner must reset or reseed the data.
+## Current limits
 
-## Working local preview
-
-The local case uses fictional Meridian payroll sources. Noor is the simulated process owner, able to confirm and publish the scoped answer. Loading the question selects Noor locally. This is a role simulation, not authentication.
-
-- Option B maps to the complete fixture clarification: regular payroll requires one approval; post-cutoff corrections require two.
-- Option A conflicts with the fixture agreement; custom wording has not been interpreted by a model. Both are saved as drafts with `pending_review`, without a verified badge.
-- The user's explanation is retained as the draft's reason. Custom wording becomes the draft answer verbatim.
-- Draft submission carries the source versions loaded with the question. Source changes return `409`; the adapter never silently refreshes and stamps old wording with new evidence.
-- Approval carries the exact newly saved draft ID. Concurrent edits return `409`.
-- Reopening an already resolved example does not silently erase it. Use Reset demo for another take.
+- Toon’s state is in memory and resets on restart. SME IDs simulate identity; there is no authentication or separate owner approval.
+- Toon’s API has no source-version or draft-version guard. The older local Meridian demo’s freshness guarantees do not apply to Toon mode.
+- A/B decisions and custom confirmations are immediately stored as verified by the assigned SME. This is human attribution, not proof that the chosen content is correct. The backend’s fixed trust percentages are not displayed.
+- No phone, calendar or outreach endpoint is called. The car invitation is a staged browser interaction; the backend currently queues simulated phone outreach only.
+- The local Meridian fallback retains its previous behavior: supported option B can publish; option A and custom answers remain drafts pending review.
