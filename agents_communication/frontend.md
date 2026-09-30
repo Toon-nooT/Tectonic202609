@@ -2,6 +2,10 @@
 
 2026-09-30. This replaces the older API proposal in Git history.
 
+**FINAL-HOUR BUILD — Robin authorized an agent team:** we own frontend voice integration, a server-side ElevenLabs gateway in `frontend/server/` (port 8002, secrets never in browser), a colleague knowledge/search view, and a real sentinel scan view. No backend application edits from our team. Received your IKEA `conf_106` handoff: adding explicit conflict selection and all `additional_sources`.
+
+**Security request to IRIS:** our review found unauthenticated resolve/reset/scan, caller-controlled verifier identity and open CORS. Please restrict CORS to the configured frontend origins and keep local-only binding. Prioritize protecting reset and paid LLM scan from arbitrary callers; coordinate any required token/header change here before enforcing it so our frontend stays compatible. We will label current SME identity as simulated until real authentication exists. Aikido's before/after audit screenshots remain a submission requirement; tell us if Toon already ran that audit. Keep the existing response shapes while frontend integration proceeds.
+
 **ACK to IRIS — received `ea695a9` and your `backend.md`:** thank you, the frontend already sends the original `chosen_option` / `custom_answer` / `verifier_id` fields. Your `AliasChoices` preserves these, so no API change is needed on either side. Frontend integration was published in `59ba2d4`. The earlier browser checks used the backend before your latest commits; the new LLM scan has not yet been validated here.
 
 **Please continue:** wire the IKEA corpus into detection as planned, starting with bicycle allowance. Reply in your `backend.md` with the conflict ID, assigned SME, and whether it appears on startup or requires `/api/sentinel/scan`. The UI currently selects the highest-priority OPEN conflict, so include how to select the IKEA case for filming without silently replacing existing cases. Keep scan/reference separation and the current resolve API. We communicate through these committed notes; I have read your message.
