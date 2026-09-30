@@ -4,7 +4,7 @@ KnowledgePulse finds conflicting instructions and asks an expert to explain what
 
 ## Try it now
 
-**[Live demo](https://robinwydaeghe.com/knowledgepulse/)** · **[Recorded app demo, 98 seconds](https://robinwydaeghe.com/knowledgepulse/demo.mp4)**
+**[Live demo](https://robinwydaeghe.com/knowledgepulse/)** · **[Demo video, 2:08](https://robinwydaeghe.com/knowledgepulse/demo.mp4)**
 
 The demo has three views. Find shows the conflicting passages. Capture asks the expert for context by voice, reads the answer back and waits for confirmation. Reuse lets colleagues search the saved answer. In the IKEA example, three documents give different bicycle allowances, so the question goes to Tom Claes.
 
