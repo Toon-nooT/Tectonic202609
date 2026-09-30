@@ -28,6 +28,8 @@ export default function CarApp() {
   });
   async function loadCase(id,{reset=false}={}){const sequence=++loadSequence.current,selected=CASES.find(c=>c.id===id);setLoading(true);setError('');setQuestion(null);try{if(reset)await resetDemo();let q;try{q=await getQuestion({conflictId:id,smeId:selected?.smeId})}catch(e){if(e.status===404||e.code==='NO_PENDING_QUESTION')q=await prepareDemoCase(id);else throw e}if(sequence!==loadSequence.current)return;setQuestion(q);setAnswer('');setResult(null);setAssistantText('');setTranscript([]);setEnded(false);savedRef.current=false;setStage('map');setSources(false)}catch(e){if(sequence===loadSequence.current)setError(e.message)}finally{if(sequence===loadSequence.current)setLoading(false)}}
   useEffect(()=>{loadCase(selectedCase);return()=>{loadSequence.current++}},[]);
+  const publicInvitationShown=useRef(false);
+  useEffect(()=>{if(question&&!loading&&!publicInvitationShown.current&&new URLSearchParams(location.search).get('start')==='1'){publicInvitationShown.current=true;setStage('incoming');setEnded(false)}},[question,loading]);
   useEffect(()=>()=>{recognition.current?.abort();window.speechSynthesis?.cancel()},[]);
   function stopLocalAudio(){generation.current++;window.speechSynthesis?.cancel();recognition.current?.abort();setSpeaking(false);setRecording(false)}
   function stopAudio(){stopLocalAudio();voice.stop();setLiveSession(false)}
