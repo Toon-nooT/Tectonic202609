@@ -48,7 +48,7 @@ For filming, run `npm run build` and `npm run preview` from `frontend/`, keeping
 
 The frontend uses Toon Beerten's API. Confirming an answer resolves the conflict and makes it searchable through `/api/search`. API docs: http://127.0.0.1:8001/docs.
 
-This is a browser simulation with fictional cases, an offline map and simulated expert identity. Backend answers live in memory and reset when the backend restarts. Expert confirmation records attribution, not independent proof of correctness. The rule scanner is deterministic. Optional LLM extraction uses OpenRouter. Aikido baseline evidence is in [aikido-before.png](aikido-before.png). The final rescan screenshot is being supplied by the backend teammate. We do not claim an independent security certification.
+This is a browser simulation with fictional cases, an offline map and simulated expert identity. Backend answers live in memory and reset when the backend restarts. Expert confirmation records attribution, not independent proof of correctness. The rule scanner is deterministic. Optional LLM extraction uses OpenRouter. Aikido screenshots: [before](aikido-before.png) and [after](aikido-after.png). We do not claim an independent security certification.
 
 ## Evidence and unfinished work
 

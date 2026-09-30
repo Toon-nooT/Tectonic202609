@@ -7,8 +7,8 @@ The prototype covers IKEA bicycle allowances and Volvo overtime. Rule extraction
 ## Required artifacts
 
 - **Description:** draft above is ready; Builderbase entry not verified.
-- **Demo video, under 3 minutes:** final file, duration and accessible link not verified. Toon Vandeleene owns filming.
+- **Demo video, under 3 minutes:** teammate video at `video.mp4` is 174.39 seconds. Toon Vandeleene owns the final edit. The website app recording is being corrected after a capture defect was found.
 - **GitHub:** [public repository](https://github.com/Toon-nooT/Tectonic202609) verified accessible on 30 September 2026; README included.
-- **Aikido:** required before/after screenshots not yet verified; account login pending.
+- **Aikido:** [before](../aikido-before.png) and [after](../aikido-after.png) screenshots are in the repository.
 
 Submit through Builderbase. Freeze code and submission edits after final submission.
