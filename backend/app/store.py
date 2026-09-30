@@ -52,13 +52,13 @@ class Store:
 
     # ---- sentinel ----
 
-    def scan(self) -> ScanReport:
+    def scan(self, extractor: str = "auto") -> ScanReport:
         """Run the collision sentinel over data/raw and upsert the detected conflicts.
 
         Already-RESOLVED conflicts are never reopened by a re-scan.
         """
         with self._lock:
-            detected, report = detector.run_scan(self.data_dir, self.smes)
+            detected, report = detector.run_scan(self.data_dir, self.smes, extractor)
             for conflict in detected:
                 conflict.priority_score = priority_score(conflict)
                 existing = self.conflicts.get(conflict.id)

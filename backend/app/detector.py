@@ -3,6 +3,7 @@
 import csv
 import json
 import re
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -10,6 +11,7 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
+from . import llm
 from .ingestion import ParsedDocument, parse_file
 from .models import (
     SME,
@@ -43,10 +45,11 @@ class Rule(BaseModel):
     rule_id: str
     conflict_id: str
     topic: str
+    description: str = ""
     client_context: str
     severity: Severity
     normalize: Literal["number", "month_day", "text"] = "text"
-    extractors: list[Extractor]
+    extractors: list[Extractor] = Field(default_factory=list)
 
 
 @dataclass
@@ -73,13 +76,16 @@ def sentence_around(text: str, start: int, end: int) -> str:
         right = len(text)
     else:
         right = m.start() if m.group(0) == "\n" else m.end()
-    return text[left:right].strip()
+    return re.sub(r"^(?:[-*\u2022]\s+|\d+[.)]\s+)", "", text[left:right].strip())
 
 
 def normalize_value(kind: str, raw: str) -> str:
     raw = raw.strip()
     if kind == "number":
-        return format(float(raw), "g")
+        m = re.search(r"\d+(?:[.,]\d+)?", raw)
+        if m is None:
+            raise ValueError(f"no number in '{raw}'")
+        return format(float(m.group(0).replace(",", ".")), "g")
     if kind == "month_day":
         for fmt in ("%B %d", "%b %d", "%Y-%m-%d"):
             try:
@@ -115,6 +121,55 @@ def extract_facts(doc: ParsedDocument, entry: CatalogEntry, rules: list[Rule]) -
     return facts
 
 
+def ground_llm_facts(
+    raw_facts: list[dict],
+    doc: ParsedDocument,
+    entry: CatalogEntry,
+    rules_by_id: dict[str, Rule],
+) -> tuple[list[Fact], int, list[str]]:
+    """Keep only LLM facts whose quoted evidence exists verbatim in the document and contains the value."""
+    facts: list[Fact] = []
+    rejected = 0
+    notes: list[str] = []
+    for f in raw_facts:
+        rule = rules_by_id.get(str(f.get("rule_id")))
+        value = str(f.get("value", "")).strip()
+        evidence = str(f.get("evidence", "")).strip()
+        reason = None
+        m = None
+        norm = ""
+        if rule is None:
+            reason = "unknown rule_id"
+        elif not value or not evidence:
+            reason = "missing value or evidence"
+        else:
+            pattern = r"\s+".join(re.escape(t) for t in evidence.split())
+            m = re.search(pattern, doc.text, re.IGNORECASE)
+            if m is None:
+                reason = "evidence not found in document"
+            elif value.lower() not in evidence.lower():
+                reason = "value not in evidence"
+            else:
+                try:
+                    norm = normalize_value(rule.normalize, value)
+                except ValueError:
+                    reason = "value not parseable"
+        if reason:
+            rejected += 1
+            notes.append(f"  rejected LLM fact from {entry.title} ({reason}): {str(f)[:140]}")
+            continue
+        if doc.format == "csv" and f.get("statement"):
+            excerpt = str(f["statement"]).strip()
+        else:
+            # anchor on the value inside the quote, so a quote ending at the full stop
+            # doesn't make the sentence expansion spill into the next sentence
+            vm = re.search(re.escape(value), doc.text[m.start() : m.end()], re.IGNORECASE)
+            s, e = (m.start() + vm.start(), m.start() + vm.end()) if vm else (m.start(), m.end())
+            excerpt = sentence_around(doc.text, s, e)
+        facts.append(Fact(rule, entry, value, norm, excerpt))
+    return facts, rejected, notes
+
+
 def _to_source(fact: Fact) -> Source:
     e = fact.entry
     return Source(
@@ -132,10 +187,22 @@ def _to_source(fact: Fact) -> Source:
 # ---------- main pipeline ----------
 
 
-def run_scan(data_dir: Path, smes: dict[str, SME]) -> tuple[list[KnowledgeConflict], ScanReport]:
+def run_scan(
+    data_dir: Path, smes: dict[str, SME], extractor: str = "auto"
+) -> tuple[list[KnowledgeConflict], ScanReport]:
+    """extractor: 'llm' (LLM only), 'regex' (rules only), 'auto' (LLM if configured, regex per-doc fallback)."""
     repo_root = data_dir.parent
     steps: list[str] = []
     report = ScanReport(run_at=datetime.now(timezone.utc))
+
+    cfg = llm.load_config() if extractor in ("llm", "auto") else None
+    if extractor == "llm" and cfg is None:
+        raise llm.LLMError("LLM extractor requested but OPENROUTER_API_KEY is not configured")
+    report.extractor_mode = (
+        "regex"
+        if cfg is None
+        else f"llm ({cfg.model})" + (" with regex fallback" if extractor == "auto" else "")
+    )
 
     catalog = [
         CatalogEntry.model_validate(e)
@@ -145,22 +212,21 @@ def run_scan(data_dir: Path, smes: dict[str, SME]) -> tuple[list[KnowledgeConfli
         Rule.model_validate(r)
         for r in json.loads((data_dir / "detection_rules.json").read_text(encoding="utf-8"))["rules"]
     ]
-    steps.append(f"Loaded {len(catalog)} registered sources and {len(rules)} fact-extraction rules")
+    steps.append(
+        f"Loaded {len(catalog)} registered sources and {len(rules)} topics; extractor: {report.extractor_mode}"
+    )
+    rules_by_id = {r.rule_id: r for r in rules}
 
-    # 1) ingest + 2) extract
-    all_facts: list[Fact] = []
+    # 1) ingest
+    parsed: list[tuple[CatalogEntry, ScannedDocument, Optional[ParsedDocument]]] = []
     for entry in catalog:
-        path = repo_root / entry.raw_path
-        sd = ScannedDocument(source_id=entry.source_id, raw_path=entry.raw_path, format=entry.format, status="PARSED")
+        sd = ScannedDocument(
+            source_id=entry.source_id, raw_path=entry.raw_path, format=entry.format, status="PARSED"
+        )
+        doc: Optional[ParsedDocument] = None
         try:
-            doc = parse_file(path)
+            doc = parse_file(repo_root / entry.raw_path)
             sd.lines = doc.line_count
-            facts = extract_facts(doc, entry, rules)
-            sd.facts_found = len(facts)
-            all_facts.extend(facts)
-            steps.append(
-                f"Parsed {entry.raw_path} ({entry.format}, {sd.lines} lines) -> {len(facts)} relevant fact(s)"
-            )
         except FileNotFoundError:
             sd.status = "MISSING"
             steps.append(f"WARNING: {entry.raw_path} not found")
@@ -169,6 +235,51 @@ def run_scan(data_dir: Path, smes: dict[str, SME]) -> tuple[list[KnowledgeConfli
             sd.error = str(exc)
             steps.append(f"WARNING: failed to parse {entry.raw_path}: {exc}")
         report.documents.append(sd)
+        parsed.append((entry, sd, doc))
+
+    # 2) extract (LLM calls run in parallel; results are validated against the source text)
+    llm_results: dict[str, object] = {}
+    if cfg:
+        specs = [{"rule_id": r.rule_id, "description": r.description or r.topic} for r in rules]
+
+        def _call(item):
+            entry, _, doc = item
+            try:
+                return entry.source_id, llm.extract_facts(cfg, entry.title, entry.format, doc.text, specs)
+            except llm.LLMError as exc:
+                return entry.source_id, exc
+
+        todo = [p for p in parsed if p[2] is not None]
+        with ThreadPoolExecutor(max_workers=5) as pool:
+            for sid, res in pool.map(_call, todo):
+                llm_results[sid] = res
+
+    all_facts: list[Fact] = []
+    for entry, sd, doc in parsed:
+        if doc is None:
+            continue
+        res = llm_results.get(entry.source_id)
+        if isinstance(res, list):
+            facts, sd.rejected_facts, notes = ground_llm_facts(res, doc, entry, rules_by_id)
+            sd.extractor = "llm"
+            how = f"LLM, {sd.rejected_facts} rejected as ungrounded"
+        else:
+            if isinstance(res, Exception):
+                if extractor == "llm":
+                    sd.status = "ERROR"
+                    sd.error = str(res)
+                    steps.append(f"WARNING: LLM extraction failed for {entry.title}: {res}")
+                    continue
+                steps.append(f"WARNING: LLM failed for {entry.title} ({res}); falling back to regex")
+            facts, notes = extract_facts(doc, entry, rules), []
+            sd.extractor = "regex"
+            how = "regex"
+        sd.facts_found = len(facts)
+        steps.append(
+            f"Parsed {entry.raw_path} ({entry.format}, {sd.lines} lines) -> {len(facts)} fact(s) [{how}]"
+        )
+        steps.extend(notes)
+        all_facts.extend(facts)
     report.facts_extracted = len(all_facts)
 
     # reference data

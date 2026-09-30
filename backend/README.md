@@ -19,6 +19,10 @@ python -m venv .venv
 | `KP_DATA_DIR` | `<repo>/data` | Location of seed, rules, reference and raw data |
 | `KP_FRONTEND_URL` | `http://localhost:5173` | Base URL used for the fallback text link in phone outreach |
 | `KP_START_EMPTY` | unset | `true` = start with no conflicts so the demo builds them live via a sentinel scan |
+| `KP_EXTRACTOR` | `auto` | Default sentinel extractor: `auto`, `llm` or `regex` |
+| `OPENROUTER_API_KEY` | none | Read from the repo-root `.env` (git-ignored). Enables LLM extraction |
+| `OPENROUTER_URL` | OpenRouter chat completions | Chat-completions endpoint |
+| `OPENROUTER_MODEL` | `openai/gpt-4o-mini` | Model used for extraction |
 
 CORS is open to all origins (PoC, no credentials).
 
@@ -48,7 +52,7 @@ data/reference/*.csv (tiers, ticket volume, SME history)  ------------->  compar
 `POST /api/sentinel/scan` runs the full pipeline:
 
 1. **Ingest** every source registered in `data/source_catalog.seed.json` from `data/raw/`.
-2. **Extract** comparable facts using the regex rules in `data/detection_rules.json` (one rule per topic; each extractor yields a `value`).
+2. **Extract** comparable facts per topic (see below). Topics are defined in `data/detection_rules.json`.
 3. **Compare** normalized values (`number`, `month_day`, `text`) across files. Two or more distinct values = a conflict. The first two distinct values become Source A and Source B, and each excerpt is the sentence it was found in.
 4. **Enrich**: client tier (`client_tiers.csv`), 48h ticket spike (`ticket_volume_48h.csv`), and the SME with the most answered questions on the topic (`topic_ownership_history.csv`).
 5. **Upsert** into the store and return a `ScanReport` whose `steps` array is a human-readable log, handy for showing the pipeline live.
@@ -57,9 +61,29 @@ Properties:
 - Idempotent: re-scanning updates open conflicts in place.
 - Already `RESOLVED` conflicts are never reopened (`skipped_resolved`).
 - A missing or malformed file is reported in the report (`MISSING`/`ERROR`) and does not abort the scan.
-- Extraction is deterministic (regex), so the demo is reproducible. The extractor can later be replaced with an LLM without changing the rest of the pipeline.
+- Regex mode is deterministic, so it is reproducible offline. LLM mode is the default when a key is configured (see Extractors below).
 
-Adding a new conflict topic: add the raw file(s), register them in the catalog, add a rule in `detection_rules.json`, and add rows to the three reference CSVs.
+Adding a new conflict topic: add the raw file(s), register them in the catalog, add a rule (with a plain-English `description`) in `detection_rules.json`, and add rows to the three reference CSVs. With the LLM extractor no regex is needed.
+
+### Extractors
+
+`POST /api/sentinel/scan?extractor=auto|llm|regex` (default from `KP_EXTRACTOR`, else `auto`).
+
+| Mode | Behaviour |
+|---|---|
+| `llm` | Each document is sent to the OpenRouter model with the topic descriptions. Strict: a failing call marks that document `ERROR` (no silent fallback). `503` if no API key is configured |
+| `regex` | Deterministic regex extractors from `detection_rules.json`. Offline and reproducible |
+| `auto` | LLM when a key is configured, otherwise regex. A failing LLM call falls back to regex for that document only |
+
+LLM safeguards (`app/llm.py`, `app/detector.py`):
+- **Grounding:** every fact must include a quote that exists verbatim in the source document and contains the extracted value. Anything else is rejected and counted in `rejected_facts` (logged in `steps`). The excerpt shown to the SME is always sentence text from the real file, never model-generated (except the short statement for structured csv rows).
+- **Untrusted input:** the system prompt and delimiters tell the model to treat the document as data and ignore any instructions inside it.
+- **Determinism:** `temperature: 0`. Documents are truncated at 20k characters.
+- **Privacy:** document text is sent to the configured provider. The API key is only read from `.env` and is never logged or returned.
+- **Corporate TLS inspection:** requests use the OS trust store (`truststore`), so the TLS-inspecting proxy does not break calls.
+- Each scanned document in the `ScanReport` records which `extractor` handled it, and the report carries `extractor_mode`.
+
+The test suite never calls the network (`KP_EXTRACTOR=regex` in `tests/conftest.py`, and the LLM is mocked in `tests/test_llm.py`).
 
 ## Data
 
@@ -191,7 +215,7 @@ GET  /api/search?q=Volvo overtime           # VERIFIED with trust scorecard
 ## Known limitations
 
 - In-memory only, state is lost on restart.
-- Regex extraction needs a rule per topic. No semantic or LLM detection yet.
+- Regex extraction needs a rule per topic. LLM extraction needs a topic description but is non-deterministic across model versions, so rehearse with `extractor=regex` as a fallback for the live demo.
 - No authentication. The SME and verifier are identified by `sme_id` only.
 - No real phone or voice provider. Outreach is queued and logged.
 - Search is keyword-based.

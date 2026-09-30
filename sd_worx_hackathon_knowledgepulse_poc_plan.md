@@ -217,14 +217,14 @@ Suggested consumer API payload for future frontend/mobile:
 | Area | Status | Notes |
 |---|---|---|
 | Seed + raw data (`data/`) | Done | 10 raw files in 7 formats across 8 source systems, plus reference CSVs |
-| Collision Sentinel (ingest, extract, compare, route) | Done | `POST /api/sentinel/scan`, deterministic regex rules, scan log in `steps[]` |
+| Collision Sentinel (ingest, extract, compare, route) | Done | `POST /api/sentinel/scan?extractor=auto\|llm\|regex`, scan log in `steps[]`. LLM extraction (OpenRouter) verified live on all 10 raw files with grounding checks; regex kept as offline fallback |
 | Priority scorer | Done | `tier x tickets x severity` |
 | Trigger 1: early finish | Done | `POST /api/calendar/trigger-early-finish` |
 | Trigger 2: commute phone call | Done (API only) | Queues and logs the call, no telephony provider connected |
 | Resolve + provenance | Done | `POST /api/conflicts/resolve` |
 | Search with trust display | Done (API) | `GET /api/search`, keyword matching |
 | Frontend (Phases 3-5) | Owned by another team member | Contract: `backend/README.md` and `/docs` |
-| LLM-based detection, real voice provider, ElevenLabs video agent | Not started | Stretch |
+| Real voice provider, ElevenLabs video agent | Not started | Stretch |
 
 Backend documentation, API reference and demo flow: [backend/README.md](backend/README.md).
 

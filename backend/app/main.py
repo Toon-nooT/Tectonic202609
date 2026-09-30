@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,6 +17,7 @@ from .models import (
     VerifiedKnowledge,
 )
 from .services import build_phone_outreach, context_anchor, search
+from .llm import LLMError
 from .store import store
 
 FRONTEND_BASE_URL = os.environ.get("KP_FRONTEND_URL", "http://localhost:5173")
@@ -88,9 +89,17 @@ def search_knowledge(q: str = Query(..., min_length=2)) -> SearchResponse:
 
 
 @app.post("/api/sentinel/scan", response_model=ScanReport)
-def sentinel_scan() -> ScanReport:
-    """Parse data/raw, extract facts, detect contradictions, score and route them."""
-    return store.scan()
+def sentinel_scan(extractor: Optional[Literal["auto", "llm", "regex"]] = None) -> ScanReport:
+    """Parse data/raw, extract facts, detect contradictions, score and route them.
+
+    extractor: 'llm', 'regex' or 'auto' (LLM when configured, per-document regex fallback).
+    Defaults to the KP_EXTRACTOR env var, else 'auto'.
+    """
+    mode = extractor or os.environ.get("KP_EXTRACTOR", "auto")
+    try:
+        return store.scan(mode)
+    except LLMError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
 
 
 @app.get("/api/sentinel/last-scan", response_model=ScanReport)

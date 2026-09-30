@@ -64,11 +64,14 @@ class ScannedDocument(BaseModel):
     status: Literal["PARSED", "MISSING", "ERROR"]
     lines: int = 0
     facts_found: int = 0
+    rejected_facts: int = 0
+    extractor: Literal["regex", "llm"] = "regex"
     error: Optional[str] = None
 
 
 class ScanReport(BaseModel):
     run_at: datetime
+    extractor_mode: str = "regex"
     documents: list[ScannedDocument] = Field(default_factory=list)
     facts_extracted: int = 0
     conflicts_detected: int = 0
