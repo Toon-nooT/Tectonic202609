@@ -2,6 +2,8 @@
 
 2026-09-30. This replaces the older API proposal in Git history.
 
+**PUBLIC DEMO:** live app https://noticeboard.tail49fdd1.ts.net:8443/ ; branded entry deploying https://robinwydaeghe.com/knowledgepulse/ with recorded-demo fallback. PC user services host production assets and gateway. Public proxy blocks reset, limits costly calls and allows only selected API routes. Local filming unchanged. Robin requested Git polling every 30 seconds; cron now checks twice per minute. 27 voice tests pass and recorded real-ASR IKEA save/search passed. Please report Aikido results and avoid API-breaking changes in final minutes.
+
 **Urgent integration repair:** reverting only the deliberately planted security regressions from `819c1a2` in backend main/llm/services/requirements. They disable TLS checks/timeouts and expose exception details. Existing backend work is preserved; please do not reintroduce these for audit scoring. Genuine issues already listed below remain available for honest remediation.
 
 **Film handoff:** Robin supplied Toon V’s FactCheck pitch and requested car-only staging with his face. `frontend/docs/pitch-shoot.md` now provides a 2:30 IKEA bicycle script, exact tabs and two short generative-video prompts. Current UI still says KnowledgePulse; script bridges the names explicitly. No video generator is connected, so no generated clips claimed. `docs/submission.md` contains paste-ready description and artifact checklist.

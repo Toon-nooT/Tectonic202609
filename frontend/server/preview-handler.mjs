@@ -109,10 +109,15 @@ async function runPreview(body, req, res) {
 }
 
 export async function handleDocumentPreview(req, res) {
+  // Read at request time: the enclosing gateway loads .env after static imports.
+  const permitted = new Set(allowedOrigins);
+  for (const origin of (process.env.KP_ALLOWED_ORIGINS || '').split(',').map(value => value.trim()).filter(Boolean)) {
+    try { const parsed = new URL(origin); if (parsed.origin === origin && ['http:', 'https:'].includes(parsed.protocol)) permitted.add(origin); } catch { /* Ignore malformed configured origins. */ }
+  }
   const pathname = (req.url || '').split('?')[0];
   if (!['/lab/preview', '/lab/status'].includes(pathname)) return false;
   const origin = req.headers.origin;
-  if ((origin && !allowedOrigins.has(origin)) || req.headers['sec-fetch-site'] === 'cross-site') {
+  if ((origin && !permitted.has(origin)) || req.headers['sec-fetch-site'] === 'cross-site') {
     reply(res, 403, { error: 'Origin not allowed.', code: 'ORIGIN_REJECTED' });
     return true;
   }
@@ -130,7 +135,7 @@ export async function handleDocumentPreview(req, res) {
     reply(res, 405, { error: 'Method not allowed.', code: 'METHOD_NOT_ALLOWED' });
     return true;
   }
-  if (!origin || !allowedOrigins.has(origin)) {
+  if (!origin || !permitted.has(origin)) {
     reply(res, 403, { error: 'A permitted browser origin is required.', code: 'ORIGIN_REJECTED' });
     return true;
   }

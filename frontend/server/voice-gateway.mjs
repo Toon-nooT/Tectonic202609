@@ -14,6 +14,9 @@ let cached={},agentId=process.env.ELEVENLABS_AGENT_ID || '';
 if(!agentId && existsSync(cache)){try{cached=JSON.parse(readFileSync(cache,'utf8'));agentId=cached.agentId || '';}catch{}}
 let provisionPromise, upstreamActive=0;
 const allowed=new Set(['http://localhost:4280','http://127.0.0.1:4280','http://localhost:4282','http://127.0.0.1:4282']);
+for(const origin of (process.env.KP_ALLOWED_ORIGINS || '').split(',').map(value=>value.trim()).filter(Boolean)){
+  try{const parsed=new URL(origin);if(parsed.origin===origin && ['http:','https:'].includes(parsed.protocol))allowed.add(origin);}catch{}
+}
 const requests=[];
 async function upstream(path,body,method=body?'POST':'GET'){
   const response=await fetch(`https://api.elevenlabs.io/v1/${path}`,{method,headers:{'xi-api-key':key,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(25000)});
