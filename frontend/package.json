@@ -6,9 +6,20 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 4280 --strictPort",
     "build": "vite build",
-    "preview": "vite preview --host 127.0.0.1 --port 4282 --strictPort"
+    "preview": "vite preview --host 127.0.0.1 --port 4282 --strictPort",
+    "voice": "node server/voice-gateway.mjs",
+    "test:voice": "node --test src/voice/*.test.js"
   },
-  "engines": { "node": ">=22.13.0" },
-  "dependencies": { "lucide-react": "^1.49.0", "react": "^19.3.0", "react-dom": "^19.3.0" },
-  "devDependencies": { "vite": "^8.3.1" }
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "dependencies": {
+    "@elevenlabs/client": "^1.26.0",
+    "lucide-react": "^1.49.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "vite": "^8.3.1"
+  }
 }

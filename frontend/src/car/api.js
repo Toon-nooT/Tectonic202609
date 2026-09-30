@@ -50,14 +50,16 @@ function normalizeToonConflict(conflict) {
   }
   const client = conflict.client_context || 'Client';
   const topic = conflict.topic || 'Knowledge clarification';
+  const sources = [conflict.source_a, conflict.source_b, ...(conflict.additional_sources || [])]
+    .filter(source => source?.excerpt)
+    .map(source => ({ title: source.title || 'Source document', excerpt: source.excerpt, sourceId: source.source_id, uri: source.uri, owner: source.owner_team }));
   return {
     id: conflict.id, title: topic, client,
-    question: `For ${client}: one source says ${conflict.source_a.excerpt} Another says ${conflict.source_b.excerpt} Which applies, and when?`,
+    question: `For ${client}: ${sources.map((source, index) => `${index === 0 ? 'one source says' : 'another says'} ${source.excerpt}`).join(' ')} Which applies, and when?`,
     expertName: conflict.assigned_sme.name || 'Assigned expert', expertRole: conflict.assigned_sme.role || 'Subject matter expert',
     optionA: conflict.source_a.excerpt,
     optionB: conflict.source_b.excerpt,
-    sourceA: { title: conflict.source_a.title || 'Source A', excerpt: conflict.source_a.excerpt },
-    sourceB: { title: conflict.source_b.title || 'Source B', excerpt: conflict.source_b.excerpt },
+    sourceA: sources[0], sourceB: sources[1], sourceC: sources[2], sources,
     suggestedAnswer: '', // The frontend must not infer which source is correct.
     scope: `${client} · ${topic}`,
     mode: 'toon',
@@ -66,9 +68,17 @@ function normalizeToonConflict(conflict) {
   };
 }
 
-export async function getQuestion() {
+export async function getQuestion(options = {}) {
   if (mode === 'toon') {
-    const result = await request('/api/conflicts/pending');
+    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+    const conflictId = options.conflictId ?? urlParams.get('conflict');
+    const smeId = options.smeId ?? urlParams.get('sme');
+    if (conflictId) {
+      const conflict = await request(`/api/conflicts/${encodeURIComponent(conflictId)}`);
+      if (conflict.status !== 'OPEN') throw adapterError('This case is already confirmed. Open shared knowledge to see the answer, or reset the take.', 409, 'ALREADY_RESOLVED');
+      return normalizeToonConflict(conflict);
+    }
+    const result = await request(`/api/conflicts/pending${smeId ? `?sme_id=${encodeURIComponent(smeId)}` : ''}`);
     const conflicts = result;
     if (!Array.isArray(conflicts)) throw adapterError('Expected the backend’s array of pending conflicts.', 0, 'CONTRACT_MISMATCH');
     const pending = conflicts.filter((conflict) => conflict.status === 'OPEN');
@@ -107,6 +117,18 @@ export async function getQuestion() {
   };
 }
 
+// Called by an explicit director case selection. Missing IKEA cases are created
+// by the real deterministic scan; existing cases and saved answers are retained.
+export async function prepareDemoCase(conflictId) {
+  if (!/^conf_\d+$/.test(conflictId || '')) throw adapterError('Choose a valid demo case.', 400, 'INVALID_CASE');
+  try { return await getQuestion({ conflictId }); }
+  catch (error) {
+    if (mode !== 'toon' || error.status !== 404) throw error;
+    await request('/api/sentinel/scan?extractor=regex', {});
+    return getQuestion({ conflictId });
+  }
+}
+
 export async function submitAnswer(question, { choice, explanation = '' }) {
   if (!question?.id || !['A', 'B', 'custom'].includes(choice)) throw adapterError('Select option A, option B, or provide your own explanation.', 400, 'INVALID_ANSWER');
   const note = typeof explanation === 'string' ? explanation.trim() : '';
@@ -127,7 +149,7 @@ export async function submitAnswer(question, { choice, explanation = '' }) {
       verifier_id: question._toon.smeId,
       verification_source: 'Car demo · expert confirmed',
     }, 'toon');
-    const resultScope = record.client_context && record.topic ? `${record.client_context} · ${record.topic}` : question.scope;
+    const resultScope = record.scope || (record.client_context && record.topic ? `${record.client_context} · ${record.topic}` : question.scope);
     if (['PENDING', 'PENDING_REVIEW', 'DRAFT'].includes(String(record.status || '').toUpperCase())) {
       return { answer: record.verified_answer || confirmedAnswer, scope: resultScope, verifiedBy: null, verifiedAt: null, status: 'pending_review', mode: 'toon' };
     }
