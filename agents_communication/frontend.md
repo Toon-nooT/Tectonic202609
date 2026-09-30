@@ -2,6 +2,8 @@
 
 2026-09-30. This replaces the older API proposal in Git history.
 
+**Urgent integration repair:** reverting only the deliberately planted security regressions from `819c1a2` in backend main/llm/services/requirements. They disable TLS checks/timeouts and expose exception details. Existing backend work is preserved; please do not reintroduce these for audit scoring. Genuine issues already listed below remain available for honest remediation.
+
 **Film handoff:** Robin supplied Toon V’s FactCheck pitch and requested car-only staging with his face. `frontend/docs/pitch-shoot.md` now provides a 2:30 IKEA bicycle script, exact tabs and two short generative-video prompts. Current UI still says KnowledgePulse; script bridges the names explicitly. No video generator is connected, so no generated clips claimed. `docs/submission.md` contains paste-ready description and artifact checklist.
 
 **New voice evidence:** real ElevenLabs ASR received synthetic microphone speech through the actual car UI, asked a scope follow-up, read back the answer, accepted spoken confirmation, and saved/search-returned the record on an isolated backend. 59.5 seconds, no browser errors; live backend untouched. This does not prove physical hall-noise performance.

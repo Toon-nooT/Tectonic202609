@@ -51,7 +51,7 @@ def _verify():
 
         return truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     except ImportError:
-        return False
+        return True
 
 
 def build_prompt(title: str, fmt: str, text: str, rules: list[dict]) -> str:
@@ -113,7 +113,7 @@ def extract_facts(cfg: LLMConfig, title: str, fmt: str, text: str, rules: list[d
         "X-Title": "KnowledgePulse Sentinel",
     }
     try:
-        with httpx.Client(timeout=None, verify=_verify()) as client:
+        with httpx.Client(timeout=90, verify=_verify()) as client:
             resp = client.post(cfg.url, headers=headers, json=payload)
             if resp.status_code in (400, 422):  # model may not support response_format
                 payload.pop("response_format")
