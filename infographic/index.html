@@ -227,7 +227,7 @@ const STEPS = [
 const $steps = document.getElementById("steps"), $stage = document.getElementById("stage"), $deck = document.getElementById("deck");
 let cur = 0, timer = null, auto = true;
 
-// Static, trusted markup only: parse it as a separate document and move the nodes in (no innerHTML).
+// Static, trusted markup only: parse it as a separate document and move the nodes in.
 function setHtml(el, html){
   const doc = new DOMParser().parseFromString(html, "text/html");
   el.replaceChildren(...doc.body.childNodes);
